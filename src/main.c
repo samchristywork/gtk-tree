@@ -1,3 +1,5 @@
+#include <cairo/cairo.h>
+#include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -44,4 +46,46 @@ void add_child(Node *node, Node *child) {
   node->n_children++;
   node->children = realloc(node->children, node->n_children * sizeof(Node));
   node->children[node->n_children - 1] = *child;
+}
+
+int draw_node(cairo_t *cr, Node *node, int x, int y) {
+  cairo_set_source_rgb(cr, 0, 0, 0);
+  cairo_move_to(cr, x, y);
+  cairo_show_text(cr, node->name);
+
+  cairo_text_extents_t extents;
+  cairo_text_extents(cr, node->name, &extents);
+  x += extents.width + 10;
+
+  int y_offset = 10;
+  for (int i = 0; i < node->n_children; i++) {
+    y_offset += draw_node(cr, &node->children[i], x, y + y_offset - 10);
+  }
+
+  return y_offset;
+}
+
+void draw_tree(cairo_t *cr) { draw_node(cr, tree->root, 100, 100); }
+
+static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
+                           gpointer data) {
+  if (event->keyval == GDK_KEY_Escape) {
+    gtk_main_quit();
+    return TRUE;
+  } else if (event->keyval == GDK_KEY_q) {
+    gtk_main_quit();
+    return TRUE;
+  }
+  return FALSE;
+}
+
+void draw_background(cairo_t *cr) {
+  cairo_set_source_rgb(cr, 1, 1, 1);
+  cairo_paint(cr);
+}
+
+static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
+  draw_background(cr);
+  draw_tree(cr);
+  return FALSE;
 }
