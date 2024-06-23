@@ -4,6 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define M_PI 3.14159265358979323846
+
+typedef struct Rectangle {
+  double x1;
+  double y1;
+  double x2;
+  double y2;
+} Rectangle;
+
 typedef struct Node {
   char *name;
   struct Node *children;
@@ -111,6 +120,11 @@ void add_child(Node *node, Node *child) {
   node->children[node->n_children - 1] = *child;
 }
 
+char *get_name(char *line) {
+  char *name = strchr(line, '\t');
+  name = strchr(name + 1, '\t');
+  return name + 1;
+}
 
 void serialize_node(Node *node, Node *parent, FILE *file) {
   if (parent != NULL) {
@@ -175,6 +189,21 @@ Tree *deserialize_tree(char *filename) {
   fclose(file);
 
   return tree;
+}
+
+void draw_rect(cairo_t *cr, Rectangle rect) {
+  cairo_set_line_width(cr, 1);
+  double width = rect.x2 - rect.x1;
+  double height = rect.y2 - rect.y1;
+  cairo_rectangle(cr, rect.x1, rect.y1, width, height);
+  cairo_stroke(cr);
+}
+
+void fill_rect(cairo_t *cr, Rectangle rect) {
+  double width = rect.x2 - rect.x1;
+  double height = rect.y2 - rect.y1;
+  cairo_rectangle(cr, rect.x1, rect.y1, width, height);
+  cairo_fill(cr);
 }
 
 void draw_node(cairo_t *cr, Node *node, double x, double y) {
