@@ -111,10 +111,75 @@ void add_child(Node *node, Node *child) {
   node->children[node->n_children - 1] = *child;
 }
 
-int draw_node(cairo_t *cr, Node *node, int x, int y) {
-  cairo_set_source_rgb(cr, 0, 0, 0);
-  cairo_move_to(cr, x, y);
-  cairo_show_text(cr, node->name);
+
+void serialize_node(Node *node, Node *parent, FILE *file) {
+  if (parent != NULL) {
+    fprintf(file, "edge	%d	%d\n", parent->id, node->id);
+    fprintf(file, "node	%d	%s\n", node->id, node->name);
+  }
+  for (int i = 0; i < node->n_children; i++) {
+    serialize_node(&node->children[i], node, file);
+  }
+}
+
+void serialize_tree(Tree *tree, char *filename) {
+  FILE *file = fopen(filename, "w");
+  serialize_node(tree->root, NULL, file);
+  fclose(file);
+}
+
+Tree *deserialize_tree(char *filename) {
+  FILE *file = fopen(filename, "r");
+
+  Tree *tree = create_tree();
+  tree->root->selected = true;
+
+  // TODO: Fix this
+  char line[100];
+  // TODO: Fix this
+  int line_number = 0;
+  while (fgets(line, 100, file) != NULL) {
+    line_number++;
+    if (strlen(line) == 99) {
+      printf("Line %d is too long\n", line_number);
+      exit(EXIT_FAILURE);
+    }
+
+    char type[100];
+    sscanf(line, "%s", type);
+
+    line[strlen(line) - 1] = '\0';
+
+    if (strcmp(type, "edge") == 0) {
+      int parentID;
+      int childID;
+      sscanf(line, "%s	%d	%d", type, &parentID, &childID);
+
+      Node *parentNode = find_node(tree->root, parentID);
+      Node *childNode = create_node(childID);
+
+      add_child(parentNode, childNode);
+    } else if (strcmp(type, "node") == 0) {
+      int nodeID;
+      // TODO: Fix this
+      char name[100];
+      sscanf(line, "%s\t%d\t%s", type, &nodeID, name);
+
+      Node *node = find_node(tree->root, nodeID);
+      node->name = strdup(get_name(line));
+    } else {
+      printf("Unknown type: %s\n", type);
+    }
+  }
+
+  fclose(file);
+
+  return tree;
+}
+
+void draw_node(cairo_t *cr, Node *node, double x, double y) {
+  double xpad = 10;
+  double ypad = 10;
 
   cairo_text_extents_t extents;
   cairo_text_extents(cr, node->name, &extents);
