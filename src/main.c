@@ -8,6 +8,10 @@ typedef struct Node {
   char *name;
   struct Node *children;
   int n_children;
+  Rectangle rect;
+  bool selected;
+  int id;
+  struct Node *parent;
 } Node;
 
 typedef struct Tree {
@@ -22,12 +26,10 @@ typedef enum Color {
   COLOR_FOREGROUND,
 } Color;
 
-void serialize_node(Node *node, FILE *file) {
-  for (int i = 0; i < node->n_children; i++) {
-    fprintf(file, "%s	%s\n", node->name, node->children[i].name);
-    serialize_node(&node->children[i], file);
-  }
-}
+GtkWidget *drawing_area;
+double font_size = 12;
+Node *draw_root;
+double connector_radius = 4;
 
 void set_color(cairo_t *cr, Color color) {
 #ifdef COLOR_SCHEME_LIGHT
@@ -69,17 +71,37 @@ void set_color(cairo_t *cr, Color color) {
 #endif
 }
 
-Node *create_node(char *name) {
+Node *create_node(int id) {
   Node *node = malloc(sizeof(Node));
-  node->name = name;
+  node->name = NULL;
   node->children = NULL;
   node->n_children = 0;
+  node->rect = (Rectangle){0, 0, 0, 0};
+  node->selected = false;
+  node->parent = NULL;
+  node->id = id;
   return node;
+}
+
+Node *find_node(Node *node, int id) {
+  if (node->id == id) {
+    return node;
+  }
+
+  for (int i = 0; i < node->n_children; i++) {
+    Node *found = find_node(&node->children[i], id);
+    if (found != NULL) {
+      return found;
+    }
+  }
+
+  return NULL;
 }
 
 Tree *create_tree() {
   Tree *tree = malloc(sizeof(Tree));
-  tree->root = create_node("root");
+  tree->root = create_node(0);
+  tree->root->name = strdup("root");
   return tree;
 }
 
