@@ -1,5 +1,6 @@
 #include <cairo/cairo.h>
 #include <gtk/gtk.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -13,7 +14,13 @@ typedef struct Tree {
   Node *root;
 } Tree;
 
-Tree *tree;
+typedef enum Color {
+  COLOR_ACCENT,
+  COLOR_ACCENT_FAINT,
+  COLOR_GRID,
+  COLOR_BACKGROUND,
+  COLOR_FOREGROUND,
+} Color;
 
 void serialize_node(Node *node, FILE *file) {
   for (int i = 0; i < node->n_children; i++) {
@@ -22,10 +29,44 @@ void serialize_node(Node *node, FILE *file) {
   }
 }
 
-void serialize_tree(Tree *tree, char *filename) {
-  FILE *file = fopen(filename, "w");
-  serialize_node(tree->root, file);
-  fclose(file);
+void set_color(cairo_t *cr, Color color) {
+#ifdef COLOR_SCHEME_LIGHT
+  switch (color) {
+  case COLOR_ACCENT:
+    cairo_set_source_rgb(cr, 1, 0.7, 0.5);
+    break;
+  case COLOR_ACCENT_FAINT:
+    cairo_set_source_rgb(cr, 1, 0.9, 0.8);
+    break;
+  case COLOR_GRID:
+    cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
+    break;
+  case COLOR_BACKGROUND:
+    cairo_set_source_rgb(cr, 0.95, 0.95, 0.95);
+    break;
+  case COLOR_FOREGROUND:
+    cairo_set_source_rgb(cr, 0, 0, 0);
+    break;
+  }
+#else
+  switch (color) {
+  case COLOR_ACCENT:
+    cairo_set_source_rgb(cr, 0.4, 0.2, 0.8);
+    break;
+  case COLOR_ACCENT_FAINT:
+    cairo_set_source_rgb(cr, 0.2, 0.1, 0.4);
+    break;
+  case COLOR_GRID:
+    cairo_set_source_rgb(cr, 0.2, 0.2, 0.2);
+    break;
+  case COLOR_BACKGROUND:
+    cairo_set_source_rgb(cr, 0.05, 0.05, 0.05);
+    break;
+  case COLOR_FOREGROUND:
+    cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
+    break;
+  }
+#endif
 }
 
 Node *create_node(char *name) {
