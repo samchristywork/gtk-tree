@@ -271,12 +271,22 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
   node->rect = (Rectangle){x, y, x + extents.width, y + extents.height};
 }
 
+void draw_connector(cairo_t *cr, double x1, double y1, double x2, double y2,
+                    double x3, double y3, double x4, double y4) {
+  x1 += connector_radius;
+  x4 -= connector_radius;
+  set_color(cr, COLOR_FOREGROUND);
+  cairo_set_line_width(cr, 1);
+  cairo_move_to(cr, x1, y1);
+  cairo_curve_to(cr, x2, y2, x3, y3, x4, y4);
+  cairo_stroke(cr);
+}
+
 Node *get_selected_node(Node *node) {
   if (node->selected) {
     return node;
   }
 
-  int y_offset = 10;
   for (int i = 0; i < node->n_children; i++) {
     y_offset += draw_node(cr, &node->children[i], x, y + y_offset - 10);
   }
