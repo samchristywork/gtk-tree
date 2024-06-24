@@ -96,6 +96,7 @@ Node *create_node(int id) {
   node->selected = false;
   node->parent = NULL;
   node->id = id;
+  node->filename = NULL;
   return node;
 }
 
@@ -219,7 +220,61 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
 
   cairo_text_extents_t extents;
   cairo_text_extents(cr, node->name, &extents);
-  x += extents.width + 10;
+  extents.height = font_size;
+
+  if (node->parent != NULL) {
+    double x1 = x;
+    double y1 = (y + y + extents.height + 2 * ypad) / 2;
+    set_color(cr, COLOR_ACCENT);
+    cairo_set_line_width(cr, 1);
+    cairo_arc(cr, x1, y1, connector_radius, 0, 2 * M_PI);
+    cairo_fill(cr);
+
+    set_color(cr, COLOR_FOREGROUND);
+    cairo_set_line_width(cr, 1);
+    cairo_arc(cr, x1, y1, connector_radius, 0, 2 * M_PI);
+    cairo_stroke(cr);
+  }
+
+  if (node->n_children != 0) {
+    double x2 = x + extents.width + 2 * xpad;
+    double y2 = (y + y + extents.height + 2 * ypad) / 2;
+    set_color(cr, COLOR_ACCENT);
+    cairo_set_line_width(cr, 1);
+    cairo_arc(cr, x2, y2, connector_radius, 0, 2 * M_PI);
+    cairo_fill(cr);
+
+    set_color(cr, COLOR_FOREGROUND);
+    cairo_set_line_width(cr, 1);
+    cairo_arc(cr, x2, y2, connector_radius, 0, 2 * M_PI);
+    cairo_stroke(cr);
+  }
+
+  if (node->selected) {
+    set_color(cr, COLOR_ACCENT_FAINT);
+  } else {
+    set_color(cr, COLOR_BACKGROUND);
+  }
+  fill_rect(cr, (Rectangle){x, y, x + extents.width + 2 * xpad,
+                            y + extents.height + 2 * ypad});
+
+  set_color(cr, COLOR_FOREGROUND);
+  cairo_move_to(cr, x + xpad, y + ypad + extents.height);
+  cairo_show_text(cr, node->name);
+
+  set_color(cr, COLOR_FOREGROUND);
+  draw_rect(cr, (Rectangle){x, y, x + extents.width + 2 * xpad,
+                            y + extents.height + 2 * ypad});
+  extents.width += 2 * xpad;
+  extents.height += 2 * ypad;
+
+  node->rect = (Rectangle){x, y, x + extents.width, y + extents.height};
+}
+
+Node *get_selected_node(Node *node) {
+  if (node->selected) {
+    return node;
+  }
 
   int y_offset = 10;
   for (int i = 0; i < node->n_children; i++) {
