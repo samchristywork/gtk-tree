@@ -21,6 +21,7 @@ typedef struct Node {
   bool selected;
   int id;
   struct Node *parent;
+  char *filename;
 } Node;
 
 typedef struct Tree {
@@ -35,49 +36,55 @@ typedef enum Color {
   COLOR_FOREGROUND,
 } Color;
 
+typedef enum Scheme {
+  SCHEME_LIGHT,
+  SCHEME_DARK,
+} Scheme;
+
 GtkWidget *drawing_area;
 double font_size = 12;
 Node *draw_root;
 double connector_radius = 4;
+Scheme color_scheme = SCHEME_DARK;
 
 void set_color(cairo_t *cr, Color color) {
-#ifdef COLOR_SCHEME_LIGHT
-  switch (color) {
-  case COLOR_ACCENT:
-    cairo_set_source_rgb(cr, 1, 0.7, 0.5);
-    break;
-  case COLOR_ACCENT_FAINT:
-    cairo_set_source_rgb(cr, 1, 0.9, 0.8);
-    break;
-  case COLOR_GRID:
-    cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
-    break;
-  case COLOR_BACKGROUND:
-    cairo_set_source_rgb(cr, 0.95, 0.95, 0.95);
-    break;
-  case COLOR_FOREGROUND:
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    break;
+  if (color_scheme == SCHEME_LIGHT) {
+    switch (color) {
+    case COLOR_ACCENT:
+      cairo_set_source_rgb(cr, 1, 0.7, 0.5);
+      break;
+    case COLOR_ACCENT_FAINT:
+      cairo_set_source_rgb(cr, 1, 0.9, 0.8);
+      break;
+    case COLOR_GRID:
+      cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
+      break;
+    case COLOR_BACKGROUND:
+      cairo_set_source_rgb(cr, 0.95, 0.95, 0.95);
+      break;
+    case COLOR_FOREGROUND:
+      cairo_set_source_rgb(cr, 0, 0, 0);
+      break;
+    }
+  } else {
+    switch (color) {
+    case COLOR_ACCENT:
+      cairo_set_source_rgb(cr, 0.4, 0.2, 0.8);
+      break;
+    case COLOR_ACCENT_FAINT:
+      cairo_set_source_rgb(cr, 0.2, 0.1, 0.4);
+      break;
+    case COLOR_GRID:
+      cairo_set_source_rgb(cr, 0.2, 0.2, 0.2);
+      break;
+    case COLOR_BACKGROUND:
+      cairo_set_source_rgb(cr, 0.05, 0.05, 0.05);
+      break;
+    case COLOR_FOREGROUND:
+      cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
+      break;
+    }
   }
-#else
-  switch (color) {
-  case COLOR_ACCENT:
-    cairo_set_source_rgb(cr, 0.4, 0.2, 0.8);
-    break;
-  case COLOR_ACCENT_FAINT:
-    cairo_set_source_rgb(cr, 0.2, 0.1, 0.4);
-    break;
-  case COLOR_GRID:
-    cairo_set_source_rgb(cr, 0.2, 0.2, 0.2);
-    break;
-  case COLOR_BACKGROUND:
-    cairo_set_source_rgb(cr, 0.05, 0.05, 0.05);
-    break;
-  case COLOR_FOREGROUND:
-    cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
-    break;
-  }
-#endif
 }
 
 Node *create_node(int id) {
