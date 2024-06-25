@@ -271,15 +271,50 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
   node->rect = (Rectangle){x, y, x + extents.width, y + extents.height};
 }
 
-void draw_connector(cairo_t *cr, double x1, double y1, double x2, double y2,
-                    double x3, double y3, double x4, double y4) {
+void draw_connector(cairo_t *cr, double x1, double y1, double x2, double y2) {
   x1 += connector_radius;
-  x4 -= connector_radius;
+  x2 -= connector_radius;
+  double xm = (x1 + x2) / 2;
+
   set_color(cr, COLOR_FOREGROUND);
   cairo_set_line_width(cr, 1);
   cairo_move_to(cr, x1, y1);
-  cairo_curve_to(cr, x2, y2, x3, y3, x4, y4);
+  cairo_curve_to(cr, xm, y1, xm, y2, x2, y2);
   cairo_stroke(cr);
+}
+
+Rectangle draw_nodes(cairo_t *cr, Node *node, double x, double y,
+                     double parent_x, double parent_y) {
+
+  double xmargin = 50;
+  double ymargin = 10;
+
+  draw_node(cr, node, x, y);
+
+  if (parent_x != 0 && parent_y != 0) {
+    draw_connector(cr, parent_x, parent_y, node->rect.x1,
+                   (node->rect.y1 + node->rect.y2) / 2);
+  }
+
+  Rectangle rect = node->rect;
+
+  for (int i = 0; i < node->n_children; i++) {
+    node->children[i].parent = node;
+    Rectangle child_rect =
+        draw_nodes(cr, &node->children[i], node->rect.x2 + xmargin, y,
+                   node->rect.x2, (node->rect.y1 + node->rect.y2) / 2);
+    y = child_rect.y2 + ymargin;
+
+    if (child_rect.y2 > rect.y2) {
+      rect.y2 = child_rect.y2;
+    }
+
+    if (child_rect.x2 > rect.x2) {
+      rect.x2 = child_rect.x2;
+    }
+  }
+
+  return rect;
 }
 
 Node *get_selected_node(Node *node) {
