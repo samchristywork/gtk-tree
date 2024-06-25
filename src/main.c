@@ -387,6 +387,28 @@ bool ask_yes_no(char *question) {
   return response == 1;
 }
 
+int get_unused_id(Node *node) {
+  int id = 0;
+  while (find_node(node, id) != NULL) {
+    id++;
+  }
+  return id;
+}
+
+bool check_if_descendent(Node *root, Node *node) {
+  if (root == node) {
+    return true;
+  }
+
+  for (int i = 0; i < root->n_children; i++) {
+    if (check_if_descendent(&root->children[i], node)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
                            gpointer data) {
   if (event->keyval == GDK_KEY_Escape) {
