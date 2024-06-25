@@ -369,7 +369,23 @@ char *ask_for_name() {
   return (char *)name;
 }
 
-void draw_tree(cairo_t *cr) { draw_node(cr, tree->root, 100, 100); }
+bool ask_yes_no(char *question) {
+  GtkWidget *dialog;
+  GtkWidget *content_area;
+  GtkWidget *label;
+
+  dialog = gtk_dialog_new_with_buttons("Question", NULL, 0, "_Yes", 1, "_No", 0,
+                                       NULL);
+  content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+  label = gtk_label_new(question);
+  gtk_container_add(GTK_CONTAINER(content_area), label);
+  gtk_widget_show_all(dialog);
+
+  int response = gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+
+  return response == 1;
+}
 
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
                            gpointer data) {
