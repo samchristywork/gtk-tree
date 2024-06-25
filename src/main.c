@@ -484,6 +484,54 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     }
     break;
   }
+  case (GDK_KEY_n): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      char *name = ask_for_name();
+      if (name) {
+        Node *new_node = create_node(get_unused_id(tree->root));
+        new_node->name = strdup(name);
+        add_child(selected, new_node);
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_r): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      char *name = ask_for_name();
+      if (name) {
+        selected->name = name;
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_d): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      Node *parent = selected->parent;
+      if (parent != NULL) {
+        if (selected->n_children > 0) {
+          if (!ask_yes_no("Delete node with children?")) {
+            break;
+          }
+        }
+        for (int i = 0; i < parent->n_children; i++) {
+          if (&parent->children[i] == selected) {
+            for (int j = i; j < parent->n_children - 1; j++) {
+              parent->children[j] = parent->children[j + 1];
+            }
+            parent->n_children--;
+            parent->children =
+                realloc(parent->children, parent->n_children * sizeof(Node));
+            break;
+          }
+        }
+        parent->selected = true;
+      }
+    }
+    break;
+  }
   }
 
   gtk_widget_queue_draw(drawing_area);
