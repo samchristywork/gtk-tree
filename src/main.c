@@ -411,13 +411,83 @@ bool check_if_descendent(Node *root, Node *node) {
 
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
                            gpointer data) {
-  if (event->keyval == GDK_KEY_Escape) {
+  Tree *tree = (Tree *)data;
+
+  switch (event->keyval) {
+  case (GDK_KEY_Escape): {
     gtk_main_quit();
     return TRUE;
-  } else if (event->keyval == GDK_KEY_q) {
-    gtk_main_quit();
-    return TRUE;
+    break;
   }
+  case (GDK_KEY_q): {
+    gtk_main_quit();
+    return TRUE;
+    break;
+  }
+  case (GDK_KEY_c): {
+    if (color_scheme == SCHEME_LIGHT) {
+      color_scheme = SCHEME_DARK;
+    } else {
+      color_scheme = SCHEME_LIGHT;
+    }
+    break;
+  }
+  case (GDK_KEY_h): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (selected->parent != NULL) {
+        selected->selected = false;
+        selected->parent->selected = true;
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_l): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (selected->n_children > 0) {
+        selected->selected = false;
+        selected->children[0].selected = true;
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_j): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (selected->parent != NULL) {
+        for (int i = 0; i < selected->parent->n_children; i++) {
+          if (&selected->parent->children[i] == selected) {
+            if (i < selected->parent->n_children - 1) {
+              selected->selected = false;
+              selected->parent->children[i + 1].selected = true;
+            }
+          }
+        }
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_k): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (selected->parent != NULL) {
+        for (int i = 0; i < selected->parent->n_children; i++) {
+          if (&selected->parent->children[i] == selected) {
+            if (i > 0) {
+              selected->selected = false;
+              selected->parent->children[i - 1].selected = true;
+            }
+          }
+        }
+      }
+    }
+    break;
+  }
+  }
+
+  gtk_widget_queue_draw(drawing_area);
+
   return FALSE;
 }
 
