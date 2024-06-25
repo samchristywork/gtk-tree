@@ -323,10 +323,50 @@ Node *get_selected_node(Node *node) {
   }
 
   for (int i = 0; i < node->n_children; i++) {
-    y_offset += draw_node(cr, &node->children[i], x, y + y_offset - 10);
+    Node *selected = get_selected_node(&node->children[i]);
+    if (selected != NULL) {
+      return selected;
+    }
   }
 
-  return y_offset;
+  return NULL;
+}
+
+static gboolean handle_return(GtkWidget *widget, GdkEventKey *event,
+                              gpointer data) {
+  if (event->keyval == GDK_KEY_Return) {
+    gtk_dialog_response(GTK_DIALOG(data), 1);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+char *ask_for_name() {
+  GtkWidget *dialog;
+  GtkWidget *content_area;
+  GtkWidget *entry;
+  const char *name;
+
+  dialog = gtk_dialog_new_with_buttons("Enter name", NULL, 0, "_OK", 1, NULL);
+  content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+  entry = gtk_entry_new();
+  gtk_container_add(GTK_CONTAINER(content_area), entry);
+  gtk_widget_show_all(dialog);
+
+  g_signal_connect(dialog, "key-press-event", G_CALLBACK(handle_return),
+                   dialog);
+
+  int response = gtk_dialog_run(GTK_DIALOG(dialog));
+  if (response == 1) {
+    name = strdup(gtk_entry_get_text(GTK_ENTRY(entry)));
+  } else {
+    name = NULL;
+  }
+
+  gtk_widget_destroy(dialog);
+
+  return (char *)name;
 }
 
 void draw_tree(cairo_t *cr) { draw_node(cr, tree->root, 100, 100); }
