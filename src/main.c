@@ -22,6 +22,7 @@ typedef struct Node {
   int id;
   struct Node *parent;
   char *filename;
+  int color;
 } Node;
 
 typedef struct Tree {
@@ -97,6 +98,7 @@ Node *create_node(int id) {
   node->parent = NULL;
   node->id = id;
   node->filename = NULL;
+  node->color = 0;
   return node;
 }
 
@@ -138,6 +140,9 @@ void serialize_node(Node *node, Node *parent, FILE *file) {
   if (parent != NULL) {
     fprintf(file, "edge	%d	%d\n", parent->id, node->id);
     fprintf(file, "node	%d	%s\n", node->id, node->name);
+    if (node->color != 0) {
+      fprintf(file, "color	%d	%d\n", node->id, node->color);
+    }
   }
   for (int i = 0; i < node->n_children; i++) {
     serialize_node(&node->children[i], node, file);
@@ -181,6 +186,13 @@ Tree *deserialize_tree(char *filename) {
       Node *childNode = create_node(childID);
 
       add_child(parentNode, childNode);
+    } else if (strcmp(type, "color") == 0) {
+      int nodeID;
+      int color;
+      sscanf(line, "%s\t%d\t%d", type, &nodeID, &color);
+
+      Node *node = find_node(tree->root, nodeID);
+      node->color = color;
     } else if (strcmp(type, "node") == 0) {
       int nodeID;
       // TODO: Fix this
@@ -257,6 +269,22 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
   }
   fill_rect(cr, (Rectangle){x, y, x + extents.width + 2 * xpad,
                             y + extents.height + 2 * ypad});
+
+  if (node->color != 0) {
+    switch (node->color) {
+    case 1:
+      cairo_set_source_rgba(cr, 0.0, 1.0, 0.0, 0.15);
+      break;
+    case 2:
+      cairo_set_source_rgba(cr, 1.0, 0.0, 0.0, 0.15);
+      break;
+    case 3:
+      cairo_set_source_rgba(cr, 0.0, 0.0, 1.0, 0.15);
+      break;
+    }
+    fill_rect(cr, (Rectangle){x, y, x + extents.width + 2 * xpad,
+                              y + extents.height + 2 * ypad});
+  }
 
   set_color(cr, COLOR_FOREGROUND);
   cairo_move_to(cr, x + xpad, y + ypad + extents.height);
@@ -424,11 +452,21 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     return TRUE;
     break;
   }
-  case (GDK_KEY_c): {
+  case (GDK_KEY_C): {
     if (color_scheme == SCHEME_LIGHT) {
       color_scheme = SCHEME_DARK;
     } else {
       color_scheme = SCHEME_LIGHT;
+    }
+    break;
+  }
+  case (GDK_KEY_c): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      selected->color++;
+      if (selected->color > 3) {
+        selected->color = 0;
+      }
     }
     break;
   }
