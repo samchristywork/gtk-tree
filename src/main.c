@@ -599,13 +599,31 @@ void draw_grid(cairo_t *cr, double line_width, double xstep, double ystep) {
 }
 
 void draw_background(cairo_t *cr) {
-  cairo_set_source_rgb(cr, 1, 1, 1);
+  set_color(cr, COLOR_BACKGROUND);
   cairo_paint(cr);
+
+  set_color(cr, COLOR_GRID);
+  draw_grid(cr, 1, 100, 100);
+  draw_grid(cr, 0.5, 20, 20);
+}
+
+void draw_frame(cairo_t *cr) {
+  static int frame = 0;
+  frame++;
+  set_color(cr, COLOR_FOREGROUND);
+  cairo_move_to(cr, 10, 20);
+  char text[100];
+  sprintf(text, "Frame: %d", frame);
+  cairo_show_text(cr, text);
 }
 
 static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
   draw_background(cr);
-  draw_tree(cr);
+
+  cairo_set_font_size(cr, font_size);
+  draw_nodes(cr, draw_root, 100, 100, 0, 0);
+
+  draw_frame(cr);
   return FALSE;
 }
 
