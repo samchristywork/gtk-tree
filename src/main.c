@@ -577,6 +577,27 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
   return FALSE;
 }
 
+void draw_grid(cairo_t *cr, double line_width, double xstep, double ystep) {
+  cairo_set_line_width(cr, line_width);
+
+  int width;
+  int height;
+  gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)), &width,
+                      &height);
+
+  for (double x = 0; x < width; x += xstep) {
+    cairo_move_to(cr, x, 0);
+    cairo_line_to(cr, x, height);
+    cairo_stroke(cr);
+  }
+
+  for (double y = 0; y < height; y += ystep) {
+    cairo_move_to(cr, 0, y);
+    cairo_line_to(cr, width, y);
+    cairo_stroke(cr);
+  }
+}
+
 void draw_background(cairo_t *cr) {
   cairo_set_source_rgb(cr, 1, 1, 1);
   cairo_paint(cr);
