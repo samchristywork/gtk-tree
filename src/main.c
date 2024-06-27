@@ -121,6 +121,7 @@ Tree *create_tree() {
   Tree *tree = malloc(sizeof(Tree));
   tree->root = create_node(0);
   tree->root->name = strdup("root");
+  draw_root = tree->root;
   return tree;
 }
 
@@ -601,13 +602,19 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
   }
   case (GDK_KEY_s): {
     serialize_tree(tree, "tree.txt");
-    tree = deserialize_tree("tree.txt");
     break;
   }
   case (GDK_KEY_S): {
     serialize_tree(tree, "/dev/stdout");
     break;
   }
+  }
+
+  Node *selected = get_selected_node(tree->root);
+  if (selected != NULL) {
+    if (!check_if_descendent(draw_root, selected)) {
+      draw_root = selected;
+    }
   }
 
   gtk_widget_queue_draw(drawing_area);
@@ -667,8 +674,6 @@ static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
 
 int main() {
   Tree *tree = deserialize_tree("tree.txt");
-
-  draw_root = tree->root;
 
   gtk_init(NULL, NULL);
 
