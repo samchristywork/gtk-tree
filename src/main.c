@@ -488,6 +488,8 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
         selected->selected = false;
         selected->parent->selected = true;
       }
+    } else {
+      tree->root->selected = true;
     }
     break;
   }
@@ -498,6 +500,8 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
         selected->selected = false;
         selected->children[0].selected = true;
       }
+    } else {
+      tree->root->selected = true;
     }
     break;
   }
@@ -514,6 +518,8 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
           }
         }
       }
+    } else {
+      tree->root->selected = true;
     }
     break;
   }
@@ -530,6 +536,8 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
           }
         }
       }
+    } else {
+      tree->root->selected = true;
     }
     break;
   }
