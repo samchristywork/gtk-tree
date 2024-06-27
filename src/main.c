@@ -47,6 +47,8 @@ double font_size = 12;
 Node *draw_root;
 double connector_radius = 4;
 Scheme color_scheme = SCHEME_DARK;
+double x_offset = 0;
+double y_offset = 0;
 
 void set_color(cairo_t *cr, Color color) {
   if (color_scheme == SCHEME_LIGHT) {
@@ -216,15 +218,44 @@ void draw_rect(cairo_t *cr, Rectangle rect) {
   cairo_set_line_width(cr, 1);
   double width = rect.x2 - rect.x1;
   double height = rect.y2 - rect.y1;
-  cairo_rectangle(cr, rect.x1, rect.y1, width, height);
+  cairo_rectangle(cr, rect.x1 + x_offset, rect.y1 + y_offset, width, height);
   cairo_stroke(cr);
 }
 
 void fill_rect(cairo_t *cr, Rectangle rect) {
   double width = rect.x2 - rect.x1;
   double height = rect.y2 - rect.y1;
-  cairo_rectangle(cr, rect.x1, rect.y1, width, height);
+  cairo_rectangle(cr, rect.x1 + x_offset, rect.y1 + y_offset, width, height);
   cairo_fill(cr);
+}
+
+void draw_circle(cairo_t *cr, double x, double y, double radius) {
+  cairo_set_line_width(cr, 1);
+  cairo_arc(cr, x + x_offset, y + y_offset, radius, 0, 2 * M_PI);
+  cairo_stroke(cr);
+}
+
+void fill_circle(cairo_t *cr, double x, double y, double radius) {
+  cairo_arc(cr, x + x_offset, y + y_offset, radius, 0, 2 * M_PI);
+  cairo_fill(cr);
+}
+
+void draw_connector(cairo_t *cr, double x1, double y1, double x2, double y2) {
+  x1 += connector_radius;
+  x2 -= connector_radius;
+  double xm = (x1 + x2) / 2;
+
+  set_color(cr, COLOR_FOREGROUND);
+  cairo_set_line_width(cr, 1);
+  cairo_move_to(cr, x1 + x_offset, y1 + y_offset);
+  cairo_curve_to(cr, xm + x_offset, y1 + y_offset, xm + x_offset, y2 + y_offset,
+                 x2 + x_offset, y2 + y_offset);
+  cairo_stroke(cr);
+}
+
+void draw_text(cairo_t *cr, double x, double y, char *text) {
+  cairo_move_to(cr, x + x_offset, y + y_offset);
+  cairo_show_text(cr, text);
 }
 
 void draw_node(cairo_t *cr, Node *node, double x, double y) {
@@ -238,29 +269,21 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
   if (node->parent != NULL) {
     double x1 = x;
     double y1 = (y + y + extents.height + 2 * ypad) / 2;
-    set_color(cr, COLOR_ACCENT);
-    cairo_set_line_width(cr, 1);
-    cairo_arc(cr, x1, y1, connector_radius, 0, 2 * M_PI);
-    cairo_fill(cr);
 
+    set_color(cr, COLOR_ACCENT);
+    fill_circle(cr, x1, y1, connector_radius);
     set_color(cr, COLOR_FOREGROUND);
-    cairo_set_line_width(cr, 1);
-    cairo_arc(cr, x1, y1, connector_radius, 0, 2 * M_PI);
-    cairo_stroke(cr);
+    draw_circle(cr, x1, y1, connector_radius);
   }
 
   if (node->n_children != 0) {
     double x2 = x + extents.width + 2 * xpad;
     double y2 = (y + y + extents.height + 2 * ypad) / 2;
-    set_color(cr, COLOR_ACCENT);
-    cairo_set_line_width(cr, 1);
-    cairo_arc(cr, x2, y2, connector_radius, 0, 2 * M_PI);
-    cairo_fill(cr);
 
+    set_color(cr, COLOR_ACCENT);
+    fill_circle(cr, x2, y2, connector_radius);
     set_color(cr, COLOR_FOREGROUND);
-    cairo_set_line_width(cr, 1);
-    cairo_arc(cr, x2, y2, connector_radius, 0, 2 * M_PI);
-    cairo_stroke(cr);
+    draw_circle(cr, x2, y2, connector_radius);
   }
 
   if (node->selected) {
@@ -288,8 +311,7 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
   }
 
   set_color(cr, COLOR_FOREGROUND);
-  cairo_move_to(cr, x + xpad, y + ypad + extents.height);
-  cairo_show_text(cr, node->name);
+  draw_text(cr, x + xpad, y + ypad + extents.height, node->name);
 
   set_color(cr, COLOR_FOREGROUND);
   draw_rect(cr, (Rectangle){x, y, x + extents.width + 2 * xpad,
@@ -298,18 +320,6 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
   extents.height += 2 * ypad;
 
   node->rect = (Rectangle){x, y, x + extents.width, y + extents.height};
-}
-
-void draw_connector(cairo_t *cr, double x1, double y1, double x2, double y2) {
-  x1 += connector_radius;
-  x2 -= connector_radius;
-  double xm = (x1 + x2) / 2;
-
-  set_color(cr, COLOR_FOREGROUND);
-  cairo_set_line_width(cr, 1);
-  cairo_move_to(cr, x1, y1);
-  cairo_curve_to(cr, xm, y1, xm, y2, x2, y2);
-  cairo_stroke(cr);
 }
 
 Rectangle draw_nodes(cairo_t *cr, Node *node, double x, double y,
@@ -630,14 +640,14 @@ void draw_grid(cairo_t *cr, double line_width, double xstep, double ystep) {
   gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)), &width,
                       &height);
 
-  for (double x = 0; x < width; x += xstep) {
-    cairo_move_to(cr, x, 0);
+  for (double x = x_offset; x < width; x += xstep) {
+    cairo_move_to(cr, x, y_offset);
     cairo_line_to(cr, x, height);
     cairo_stroke(cr);
   }
 
-  for (double y = 0; y < height; y += ystep) {
-    cairo_move_to(cr, 0, y);
+  for (double y = y_offset; y < height; y += ystep) {
+    cairo_move_to(cr, x_offset, y);
     cairo_line_to(cr, width, y);
     cairo_stroke(cr);
   }
