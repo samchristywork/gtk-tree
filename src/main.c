@@ -672,6 +672,41 @@ static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
   return FALSE;
 }
 
+Node *get_clicked_node(Node *node, double x, double y) {
+  if (x >= node->rect.x1 && x <= node->rect.x2 && y >= node->rect.y1 &&
+      y <= node->rect.y2) {
+    return node;
+  }
+
+  for (int i = 0; i < node->n_children; i++) {
+    Node *clicked = get_clicked_node(&node->children[i], x, y);
+    if (clicked != NULL) {
+      return clicked;
+    }
+  }
+
+  return NULL;
+}
+
+static gboolean handle_click(GtkWidget *widget, GdkEventButton *event,
+                             gpointer data) {
+  Tree *tree = (Tree *)data;
+
+  Node *selected = get_selected_node(tree->root);
+  if (selected != NULL) {
+    selected->selected = false;
+  }
+
+  Node *clicked = get_clicked_node(tree->root, event->x, event->y);
+  if (clicked != NULL) {
+    clicked->selected = true;
+  }
+
+  gtk_widget_queue_draw(drawing_area);
+
+  return FALSE;
+}
+
 int main() {
   Tree *tree = deserialize_tree("tree.txt");
 
@@ -692,6 +727,9 @@ int main() {
   g_signal_connect(drawing_area, "draw", G_CALLBACK(handle_draw), NULL);
 
   g_signal_connect(window, "key-press-event", G_CALLBACK(handle_key), tree);
+
+  g_signal_connect(window, "button-press-event", G_CALLBACK(handle_click),
+                   tree);
 
   gtk_widget_show_all(window);
 
