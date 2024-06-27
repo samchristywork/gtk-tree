@@ -706,18 +706,41 @@ Node *get_clicked_node(Node *node, double x, double y) {
   return NULL;
 }
 
+double mouse_x = 0;
+double mouse_y = 0;
 static gboolean handle_click(GtkWidget *widget, GdkEventButton *event,
                              gpointer data) {
   Tree *tree = (Tree *)data;
+
+  mouse_x = event->x;
+  mouse_y = event->y;
 
   Node *selected = get_selected_node(tree->root);
   if (selected != NULL) {
     selected->selected = false;
   }
 
-  Node *clicked = get_clicked_node(tree->root, event->x, event->y);
+  Node *clicked =
+      get_clicked_node(tree->root, event->x - x_offset, event->y - y_offset);
   if (clicked != NULL) {
     clicked->selected = true;
+  }
+
+  gtk_widget_queue_draw(drawing_area);
+
+  return FALSE;
+}
+
+static gboolean handle_drag(GtkWidget *widget, GdkEventButton *event,
+                            gpointer data) {
+  Tree *tree = (Tree *)data;
+
+  if (event->state & GDK_BUTTON1_MASK) {
+    x_offset += event->x - mouse_x;
+    y_offset += event->y - mouse_y;
+    mouse_x = event->x;
+    mouse_y = event->y;
+    printf("x_offset: %f, y_offset: %f\n", x_offset, y_offset);
   }
 
   gtk_widget_queue_draw(drawing_area);
@@ -747,6 +770,9 @@ int main() {
   g_signal_connect(window, "key-press-event", G_CALLBACK(handle_key), tree);
 
   g_signal_connect(window, "button-press-event", G_CALLBACK(handle_click),
+                   tree);
+
+  g_signal_connect(window, "motion-notify-event", G_CALLBACK(handle_drag),
                    tree);
 
   gtk_widget_show_all(window);
