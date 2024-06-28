@@ -689,7 +689,7 @@ int count_descendents(Node *node) {
   return count + node->n_children;
 }
 
-void draw_side_panel(cairo_t *cr, double x, double y, double width,
+void draw_side_panel(cairo_t *cr, Tree *tree, double x, double y, double width,
                      double height) {
   set_color(cr, COLOR_BACKGROUND, 0.8);
   cairo_rectangle(cr, x, y, width, height);
@@ -702,19 +702,27 @@ void draw_side_panel(cairo_t *cr, double x, double y, double width,
   Node *selected = get_selected_node(draw_root);
   if (selected != NULL) {
     char text[100];
+    int offset = 20;
+
+    sprintf(text, "Node Count: %d", count_descendents(tree->root));
+    cairo_move_to(cr, x + 10, y + offset);
+    cairo_show_text(cr, text);
+    offset += 20;
 
     sprintf(text, "Name: %s", selected->name);
-    cairo_move_to(cr, x + 10, y + 20);
+    cairo_move_to(cr, x + 10, y + offset);
     cairo_show_text(cr, text);
+    offset += 20;
 
-    int num_descendents = count_descendents(selected);
-    sprintf(text, "Descendents: %d", num_descendents);
-    cairo_move_to(cr, x + 10, y + 40);
+    sprintf(text, "Descendents: %d", count_descendents(selected));
+    cairo_move_to(cr, x + 10, y + offset);
     cairo_show_text(cr, text);
   }
 }
 
 static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
+  Tree *tree = (Tree *)data;
+
   draw_background(cr);
 
   cairo_set_font_size(cr, font_size);
@@ -725,7 +733,7 @@ static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
   int height;
   gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)), &width,
                       &height);
-  draw_side_panel(cr, width - panel_width, 10, panel_width - 10, height - 20);
+  draw_side_panel(cr, tree, width - panel_width, 10, panel_width - 10, height - 20);
 
   draw_frame(cr);
   return FALSE;
@@ -828,7 +836,7 @@ int main() {
   gtk_container_add(GTK_CONTAINER(container), drawing_area);
   gtk_widget_set_hexpand(drawing_area, TRUE);
   gtk_widget_set_vexpand(drawing_area, TRUE);
-  g_signal_connect(drawing_area, "draw", G_CALLBACK(handle_draw), NULL);
+  g_signal_connect(drawing_area, "draw", G_CALLBACK(handle_draw), tree);
 
   g_signal_connect(window, "key-press-event", G_CALLBACK(handle_key), tree);
 
