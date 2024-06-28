@@ -141,23 +141,49 @@ char *get_name(char *line) {
   return name + 1;
 }
 
-void serialize_node(Node *node, Node *parent, FILE *file) {
+typedef struct string {
+  char *str;
+  int len;
+  int size;
+} string;
+
+void serialize_node(Node *node, Node *parent, string *s) {
   if (parent != NULL) {
-    fprintf(file, "edge	%d	%d\n", parent->id, node->id);
-    fprintf(file, "node	%d	%s\n", node->id, node->name);
+    if (s->len + 100 > s->size) {
+      s->size *= 2;
+      s->str = realloc(s->str, s->size);
+    }
+    s->len +=
+        sprintf(s->str + s->len, "edge	%d	%d\n", parent->id, node->id);
+    if (s->len + 100 > s->size) {
+      s->size *= 2;
+      s->str = realloc(s->str, s->size);
+    }
+    s->len +=
+        sprintf(s->str + s->len, "node	%d	%s\n", node->id, node->name);
     if (node->color != 0) {
-      fprintf(file, "color	%d	%d\n", node->id, node->color);
+      if (s->len + 100 > s->size) {
+        s->size *= 2;
+        s->str = realloc(s->str, s->size);
+      }
+      s->len +=
+          sprintf(s->str + s->len, "color	%d	%d\n", node->id, node->color);
     }
   }
   for (int i = 0; i < node->n_children; i++) {
-    serialize_node(&node->children[i], node, file);
+    serialize_node(&node->children[i], node, s);
   }
 }
 
-void serialize_tree(Tree *tree, char *filename) {
-  FILE *file = fopen(filename, "w");
-  serialize_node(tree->root, NULL, file);
-  fclose(file);
+char *serialize_tree(Node *node) {
+  string s;
+  s.str = malloc(1000);
+  s.size = 1000;
+  s.len = 0;
+
+  serialize_node(node, NULL, &s);
+
+  return s.str;
 }
 
 Tree *deserialize_tree(char *filename) {
@@ -664,11 +690,17 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     break;
   }
   case (GDK_KEY_s): {
-    serialize_tree(tree, "tree.txt");
+    char *s = serialize_tree(tree->root);
+    FILE *file = fopen("tree.txt", "w");
+    fprintf(file, "%s", s);
+    fclose(file);
+    free(s);
     break;
   }
   case (GDK_KEY_S): {
-    serialize_tree(tree, "/dev/stdout");
+    char *s = serialize_tree(tree->root);
+    printf("%s", s);
+    free(s);
     break;
   }
   }
@@ -880,6 +912,7 @@ int main() {
   gtk_container_add(GTK_CONTAINER(container), drawing_area);
   gtk_widget_set_hexpand(drawing_area, TRUE);
   gtk_widget_set_vexpand(drawing_area, TRUE);
+
   g_signal_connect(drawing_area, "draw", G_CALLBACK(handle_draw), tree);
 
   g_signal_connect(window, "key-press-event", G_CALLBACK(handle_key), tree);
