@@ -681,6 +681,14 @@ void draw_frame(cairo_t *cr) {
   cairo_show_text(cr, text);
 }
 
+int count_descendents(Node *node) {
+  int count = 0;
+  for (int i = 0; i < node->n_children; i++) {
+    count += count_descendents(&node->children[i]);
+  }
+  return count + node->n_children;
+}
+
 void draw_side_panel(cairo_t *cr, double x, double y, double width,
                      double height) {
   set_color(cr, COLOR_BACKGROUND, 0.8);
@@ -693,8 +701,16 @@ void draw_side_panel(cairo_t *cr, double x, double y, double width,
 
   Node *selected = get_selected_node(draw_root);
   if (selected != NULL) {
+    char text[100];
+
+    sprintf(text, "Name: %s", selected->name);
     cairo_move_to(cr, x + 10, y + 20);
-    cairo_show_text(cr, selected->name);
+    cairo_show_text(cr, text);
+
+    int num_descendents = count_descendents(selected);
+    sprintf(text, "Descendents: %d", num_descendents);
+    cairo_move_to(cr, x + 10, y + 40);
+    cairo_show_text(cr, text);
   }
 }
 
