@@ -1,5 +1,6 @@
 #include <cairo/cairo.h>
 #include <gtk/gtk.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -706,29 +707,48 @@ Node *get_clicked_node(Node *node, double x, double y) {
   return NULL;
 }
 
+bool dragging = false;
 double mouse_x = 0;
 double mouse_y = 0;
+double click_pos_x = 0;
+double click_pos_y = 0;
 static gboolean handle_click(GtkWidget *widget, GdkEventButton *event,
                              gpointer data) {
   Tree *tree = (Tree *)data;
 
   mouse_x = event->x;
   mouse_y = event->y;
-
-  Node *selected = get_selected_node(tree->root);
-  if (selected != NULL) {
-    selected->selected = false;
-  }
-
-  Node *clicked =
-      get_clicked_node(tree->root, event->x - x_offset, event->y - y_offset);
-  if (clicked != NULL) {
-    clicked->selected = true;
-  }
-
-  gtk_widget_queue_draw(drawing_area);
+  click_pos_x = event->x;
+  click_pos_y = event->y;
+  dragging = false;
 
   return FALSE;
+}
+
+static gboolean handle_release(GtkWidget *widget, GdkEventButton *event,
+                               gpointer data) {
+  Tree *tree = (Tree *)data;
+
+  if (!dragging) {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      selected->selected = false;
+    }
+
+    Node *clicked =
+        get_clicked_node(tree->root, event->x - x_offset, event->y - y_offset);
+    if (clicked != NULL) {
+      clicked->selected = true;
+    }
+
+    gtk_widget_queue_draw(drawing_area);
+  }
+
+  return FALSE;
+}
+
+double distance(double x1, double y1, double x2, double y2) {
+  return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
 }
 
 static gboolean handle_drag(GtkWidget *widget, GdkEventButton *event,
@@ -740,7 +760,10 @@ static gboolean handle_drag(GtkWidget *widget, GdkEventButton *event,
     y_offset += event->y - mouse_y;
     mouse_x = event->x;
     mouse_y = event->y;
-    printf("x_offset: %f, y_offset: %f\n", x_offset, y_offset);
+
+    if (distance(click_pos_x, click_pos_y, event->x, event->y) > 5) {
+      dragging = true;
+    }
   }
 
   gtk_widget_queue_draw(drawing_area);
@@ -770,6 +793,9 @@ int main() {
   g_signal_connect(window, "key-press-event", G_CALLBACK(handle_key), tree);
 
   g_signal_connect(window, "button-press-event", G_CALLBACK(handle_click),
+                   tree);
+
+  g_signal_connect(window, "button-release-event", G_CALLBACK(handle_release),
                    tree);
 
   g_signal_connect(window, "motion-notify-event", G_CALLBACK(handle_drag),
