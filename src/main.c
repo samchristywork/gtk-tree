@@ -449,6 +449,21 @@ bool check_if_descendent(Node *root, Node *node) {
   return false;
 }
 
+Node *fuzzy_search(Node *node, char *name) {
+  if (strstr(node->name, name) != NULL) {
+    return node;
+  }
+
+  for (int i = 0; i < node->n_children; i++) {
+    Node *found = fuzzy_search(&node->children[i], name);
+    if (found != NULL) {
+      return found;
+    }
+  }
+
+  return NULL;
+}
+
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
                            gpointer data) {
   Tree *tree = (Tree *)data;
@@ -616,6 +631,18 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     Node *selected = get_selected_node(tree->root);
     if (selected != NULL) {
       draw_root = selected;
+    }
+    break;
+  }
+  case (GDK_KEY_slash): {
+    char *name = ask_for_name();
+    Node *node = fuzzy_search(tree->root, name);
+    if (node != NULL) {
+      Node *selected = get_selected_node(tree->root);
+      if (selected != NULL) {
+        selected->selected = false;
+      }
+      node->selected = true;
     }
     break;
   }
