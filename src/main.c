@@ -51,6 +51,7 @@ double connector_radius = 4;
 Scheme color_scheme = SCHEME_DARK;
 double x_offset = 0;
 double y_offset = 0;
+int current_hash = 0;
 
 void set_color(cairo_t *cr, Color color, double alpha) {
   if (color_scheme == SCHEME_LIGHT) {
@@ -186,6 +187,14 @@ char *serialize_tree(Node *node) {
   return s.str;
 }
 
+int hash_string(char *s) {
+  int hash = 0;
+  for (int i = 0; i < strlen(s); i++) {
+    hash += s[i];
+  }
+  return hash;
+}
+
 Tree *deserialize_tree(char *filename) {
   FILE *file = fopen(filename, "r");
 
@@ -238,6 +247,10 @@ Tree *deserialize_tree(char *filename) {
   }
 
   fclose(file);
+
+  char *s = serialize_tree(tree->root);
+  current_hash = hash_string(s);
+  free(s);
 
   return tree;
 }
@@ -694,6 +707,8 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     FILE *file = fopen("tree.txt", "w");
     fprintf(file, "%s", s);
     fclose(file);
+
+    current_hash = hash_string(s);
     free(s);
     break;
   }
