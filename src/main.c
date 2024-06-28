@@ -50,41 +50,41 @@ Scheme color_scheme = SCHEME_DARK;
 double x_offset = 0;
 double y_offset = 0;
 
-void set_color(cairo_t *cr, Color color) {
+void set_color(cairo_t *cr, Color color, double alpha) {
   if (color_scheme == SCHEME_LIGHT) {
     switch (color) {
     case COLOR_ACCENT:
-      cairo_set_source_rgb(cr, 1, 0.7, 0.5);
+      cairo_set_source_rgba(cr, 1, 0.7, 0.5, alpha);
       break;
     case COLOR_ACCENT_FAINT:
-      cairo_set_source_rgb(cr, 1, 0.9, 0.8);
+      cairo_set_source_rgba(cr, 1, 0.9, 0.8, alpha);
       break;
     case COLOR_GRID:
-      cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
+      cairo_set_source_rgba(cr, 0.8, 0.8, 0.8, alpha);
       break;
     case COLOR_BACKGROUND:
-      cairo_set_source_rgb(cr, 0.95, 0.95, 0.95);
+      cairo_set_source_rgba(cr, 0.95, 0.95, 0.95, alpha);
       break;
     case COLOR_FOREGROUND:
-      cairo_set_source_rgb(cr, 0, 0, 0);
+      cairo_set_source_rgba(cr, 0, 0, 0, alpha);
       break;
     }
   } else {
     switch (color) {
     case COLOR_ACCENT:
-      cairo_set_source_rgb(cr, 0.4, 0.2, 0.8);
+      cairo_set_source_rgba(cr, 0.4, 0.2, 0.8, alpha);
       break;
     case COLOR_ACCENT_FAINT:
-      cairo_set_source_rgb(cr, 0.2, 0.1, 0.4);
+      cairo_set_source_rgba(cr, 0.2, 0.1, 0.4, alpha);
       break;
     case COLOR_GRID:
-      cairo_set_source_rgb(cr, 0.2, 0.2, 0.2);
+      cairo_set_source_rgba(cr, 0.2, 0.2, 0.2, alpha);
       break;
     case COLOR_BACKGROUND:
-      cairo_set_source_rgb(cr, 0.05, 0.05, 0.05);
+      cairo_set_source_rgba(cr, 0.05, 0.05, 0.05, alpha);
       break;
     case COLOR_FOREGROUND:
-      cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
+      cairo_set_source_rgba(cr, 0.8, 0.8, 0.8, alpha);
       break;
     }
   }
@@ -245,7 +245,7 @@ void draw_connector(cairo_t *cr, double x1, double y1, double x2, double y2) {
   x2 -= connector_radius;
   double xm = (x1 + x2) / 2;
 
-  set_color(cr, COLOR_FOREGROUND);
+  set_color(cr, COLOR_FOREGROUND, 1.0);
   cairo_set_line_width(cr, 1);
   cairo_move_to(cr, x1 + x_offset, y1 + y_offset);
   cairo_curve_to(cr, xm + x_offset, y1 + y_offset, xm + x_offset, y2 + y_offset,
@@ -270,9 +270,9 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
     double x1 = x;
     double y1 = (y + y + extents.height + 2 * ypad) / 2;
 
-    set_color(cr, COLOR_ACCENT);
+    set_color(cr, COLOR_ACCENT, 1.0);
     fill_circle(cr, x1, y1, connector_radius);
-    set_color(cr, COLOR_FOREGROUND);
+    set_color(cr, COLOR_FOREGROUND, 1.0);
     draw_circle(cr, x1, y1, connector_radius);
   }
 
@@ -280,16 +280,16 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
     double x2 = x + extents.width + 2 * xpad;
     double y2 = (y + y + extents.height + 2 * ypad) / 2;
 
-    set_color(cr, COLOR_ACCENT);
+    set_color(cr, COLOR_ACCENT, 1.0);
     fill_circle(cr, x2, y2, connector_radius);
-    set_color(cr, COLOR_FOREGROUND);
+    set_color(cr, COLOR_FOREGROUND, 1.0);
     draw_circle(cr, x2, y2, connector_radius);
   }
 
   if (node->selected) {
-    set_color(cr, COLOR_ACCENT_FAINT);
+    set_color(cr, COLOR_ACCENT_FAINT, 1.0);
   } else {
-    set_color(cr, COLOR_BACKGROUND);
+    set_color(cr, COLOR_BACKGROUND, 1.0);
   }
   fill_rect(cr, (Rectangle){x, y, x + extents.width + 2 * xpad,
                             y + extents.height + 2 * ypad});
@@ -310,10 +310,10 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
                               y + extents.height + 2 * ypad});
   }
 
-  set_color(cr, COLOR_FOREGROUND);
+  set_color(cr, COLOR_FOREGROUND, 1.0);
   draw_text(cr, x + xpad, y + ypad + extents.height, node->name);
 
-  set_color(cr, COLOR_FOREGROUND);
+  set_color(cr, COLOR_FOREGROUND, 1.0);
   draw_rect(cr, (Rectangle){x, y, x + extents.width + 2 * xpad,
                             y + extents.height + 2 * ypad});
   extents.width += 2 * xpad;
@@ -662,10 +662,10 @@ void draw_grid(cairo_t *cr, double line_width, double xstep, double ystep) {
 }
 
 void draw_background(cairo_t *cr) {
-  set_color(cr, COLOR_BACKGROUND);
+  set_color(cr, COLOR_BACKGROUND, 1.0);
   cairo_paint(cr);
 
-  set_color(cr, COLOR_GRID);
+  set_color(cr, COLOR_GRID, 1.0);
   draw_grid(cr, 1, 100, 100);
   draw_grid(cr, 0.5, 20, 20);
 }
@@ -673,7 +673,7 @@ void draw_background(cairo_t *cr) {
 void draw_frame(cairo_t *cr) {
   static int frame = 0;
   frame++;
-  set_color(cr, COLOR_FOREGROUND);
+  set_color(cr, COLOR_FOREGROUND, 1.0);
   cairo_move_to(cr, 10, 20);
   char text[100];
   sprintf(text, "Frame: %d", frame);
