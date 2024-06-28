@@ -681,11 +681,35 @@ void draw_frame(cairo_t *cr) {
   cairo_show_text(cr, text);
 }
 
+void draw_side_panel(cairo_t *cr, double x, double y, double width,
+                     double height) {
+  set_color(cr, COLOR_BACKGROUND, 0.8);
+  cairo_rectangle(cr, x, y, width, height);
+  cairo_fill(cr);
+
+  set_color(cr, COLOR_FOREGROUND, 1.0);
+  cairo_rectangle(cr, x, y, width, height);
+  cairo_stroke(cr);
+
+  Node *selected = get_selected_node(draw_root);
+  if (selected != NULL) {
+    cairo_move_to(cr, x + 10, y + 20);
+    cairo_show_text(cr, selected->name);
+  }
+}
+
 static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
   draw_background(cr);
 
   cairo_set_font_size(cr, font_size);
   draw_nodes(cr, draw_root, 100, 100, 0, 0);
+
+  int panel_width = 600;
+  int width;
+  int height;
+  gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)), &width,
+                      &height);
+  draw_side_panel(cr, width - panel_width, 10, panel_width - 10, height - 20);
 
   draw_frame(cr);
   return FALSE;
