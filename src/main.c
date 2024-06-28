@@ -1,4 +1,5 @@
 #include <cairo/cairo.h>
+#include <ctype.h>
 #include <gtk/gtk.h>
 #include <math.h>
 #include <stdbool.h>
@@ -449,8 +450,24 @@ bool check_if_descendent(Node *root, Node *node) {
   return false;
 }
 
+char *compare_strings(char *s1, char *s2) {
+  while (*s1 && *s2) {
+    if (tolower(*s1) != tolower(*s2)) {
+      return NULL;
+    }
+    s1++;
+    s2++;
+  }
+
+  if (*s1 || *s2) {
+    return NULL;
+  }
+
+  return s1;
+}
+
 Node *fuzzy_search(Node *node, char *name) {
-  if (strstr(node->name, name) != NULL) {
+  if (compare_strings(node->name, name) != NULL) {
     return node;
   }
 
