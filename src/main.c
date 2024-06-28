@@ -520,6 +520,17 @@ Node *fuzzy_search(Node *node, char *name) {
   return NULL;
 }
 
+bool is_visible(Rectangle rect, double x_offset, double y_offset, double width,
+                double height) {
+  int margin = 100;
+  if (rect.x1 + x_offset > width - margin || rect.x2 + x_offset < margin ||
+      rect.y1 + y_offset > height - margin || rect.y2 + y_offset < margin) {
+    return false;
+  }
+
+  return true;
+}
+
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
                            gpointer data) {
   Tree *tree = (Tree *)data;
@@ -724,6 +735,14 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
   if (selected != NULL) {
     if (!check_if_descendent(draw_root, selected)) {
       draw_root = selected;
+    }
+
+    int width;
+    int height;
+    gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)),
+                        &width, &height);
+    if (!is_visible(selected->rect, x_offset, y_offset, width, height)) {
+      center_node(selected);
     }
   }
 
