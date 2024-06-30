@@ -748,6 +748,8 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
   }
   }
 
+  gtk_widget_queue_draw(drawing_area);
+
   Node *selected = get_selected_node(tree->root);
   if (selected != NULL) {
     if (!check_if_descendent(draw_root, selected)) {
