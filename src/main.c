@@ -531,6 +531,16 @@ bool is_visible(Rectangle rect, double x_offset, double y_offset, double width,
   return true;
 }
 
+void center_node(Node *selected) {
+  int width;
+  int height;
+  gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)), &width,
+                      &height);
+
+  y_offset = -selected->rect.y1 + (float)height / 4;
+  x_offset = -selected->rect.x1 + (float)width / 8;
+}
+
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
                            gpointer data) {
   Tree *tree = (Tree *)data;
@@ -713,6 +723,13 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     }
     break;
   }
+  case (GDK_KEY_z): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      center_node(selected);
+    }
+    break;
+  }
   case (GDK_KEY_s): {
     char *s = serialize_tree(tree->root);
     FILE *file = fopen("tree.txt", "w");
@@ -843,7 +860,8 @@ static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
   int height;
   gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)), &width,
                       &height);
-  draw_side_panel(cr, tree, width - panel_width, 10, panel_width - 10, height - 20);
+  draw_side_panel(cr, tree, width - panel_width, 10, panel_width - 10,
+                  height - 20);
 
   draw_frame(cr);
   return FALSE;
