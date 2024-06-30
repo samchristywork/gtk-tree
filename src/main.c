@@ -810,6 +810,18 @@ void draw_frame(cairo_t *cr) {
   cairo_show_text(cr, text);
 }
 
+void draw_modified_indicator(cairo_t *cr, Tree *tree) {
+  char *s = serialize_tree(tree->root);
+  if (current_hash != hash_string(s)) {
+    set_color(cr, COLOR_FOREGROUND, 1.0);
+    char text[100];
+    cairo_move_to(cr, 10, 40);
+    sprintf(text, "Modified");
+    cairo_show_text(cr, text);
+  }
+  free(s);
+}
+
 int count_descendents(Node *node) {
   int count = 0;
   for (int i = 0; i < node->n_children; i++) {
@@ -866,6 +878,7 @@ static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
                   height - 20);
 
   draw_frame(cr);
+  draw_modified_indicator(cr, tree);
   return FALSE;
 }
 
