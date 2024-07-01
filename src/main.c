@@ -322,6 +322,14 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
   cairo_text_extents(cr, node->name, &extents);
   extents.height = font_size;
 
+  if (node->filename != NULL) {
+    set_color(cr, COLOR_ACCENT, 1.0);
+    cairo_set_source_rgba(cr, 0.0, 1.0, 0.0, 0.15);
+    fill_circle(cr, x + extents.width + 2 * xpad, y, 5);
+    set_color(cr, COLOR_FOREGROUND, 1.0);
+    draw_circle(cr, x + extents.width + 2 * xpad, y, 5);
+  }
+
   if (node->parent != NULL) {
     double x1 = x;
     double y1 = (y + y + extents.height + 2 * ypad) / 2;
@@ -372,6 +380,7 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
   set_color(cr, COLOR_FOREGROUND, 1.0);
   draw_rect(cr, (Rectangle){x, y, x + extents.width + 2 * xpad,
                             y + extents.height + 2 * ypad});
+
   extents.width += 2 * xpad;
   extents.height += 2 * ypad;
 
