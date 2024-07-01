@@ -167,8 +167,8 @@ void serialize_node(Node *node, Node *parent, string *s) {
         s->size *= 2;
         s->str = realloc(s->str, s->size);
       }
-      s->len +=
-          sprintf(s->str + s->len, "color	%d	%d\n", node->id, node->color);
+      s->len += sprintf(s->str + s->len, "color	%d	%d\n", node->id,
+                        node->color);
     }
   }
   for (int i = 0; i < node->n_children; i++) {
@@ -541,6 +541,34 @@ void center_node(Node *selected) {
   x_offset = -selected->rect.x1 + (float)width / 8;
 }
 
+void show_help() {
+  GtkWidget *dialog =
+      gtk_dialog_new_with_buttons("Help", NULL, 0, "_OK", 1, NULL);
+  GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+  GtkWidget *label = gtk_label_new("h: Move up\n"
+                                   "j: Move down\n"
+                                   "k: Move up\n"
+                                   "l: Move right\n"
+                                   "n: Add child\n"
+                                   "r: Rename\n"
+                                   "d: Delete\n"
+                                   "i: Insert\n"
+                                   "c: Change color\n"
+                                   "z: Center\n"
+                                   "s: Save\n"
+                                   "S: Print\n"
+                                   "q: Quit\n"
+                                   "?: Help\n"
+                                   "/: Search\n"
+                                   "Return: Select\n"
+                                   "Escape: Quit\n");
+  gtk_container_add(GTK_CONTAINER(content_area), label);
+  gtk_widget_show_all(dialog);
+
+  int response = gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+}
+
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
                            gpointer data) {
   Tree *tree = (Tree *)data;
@@ -709,6 +737,10 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     if (selected != NULL) {
       draw_root = selected;
     }
+    break;
+  }
+  case (GDK_KEY_question): {
+    show_help();
     break;
   }
   case (GDK_KEY_slash): {
