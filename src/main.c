@@ -659,6 +659,27 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     }
     break;
   }
+  case (GDK_KEY_e): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (selected->filename == NULL) {
+        char filename[100];
+        sprintf(filename, "content/%s.txt", selected->name);
+        selected->filename = strdup(filename);
+      }
+
+      if (selected->filename != NULL) {
+        FILE *file = fopen(selected->filename, "a");
+        fclose(file);
+
+        char command[100];
+        sprintf(command, "xdg-open %s", selected->filename);
+        printf("%s\n", command);
+        system(command);
+      }
+    }
+    break;
+  }
   case (GDK_KEY_k): {
     Node *selected = get_selected_node(tree->root);
     if (selected != NULL) {
