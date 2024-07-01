@@ -170,6 +170,14 @@ void serialize_node(Node *node, Node *parent, string *s) {
       s->len += sprintf(s->str + s->len, "color	%d	%d\n", node->id,
                         node->color);
     }
+    if (node->filename != NULL) {
+      if (s->len + 100 > s->size) {
+        s->size *= 2;
+        s->str = realloc(s->str, s->size);
+      }
+      s->len += sprintf(s->str + s->len, "filename	%d	%s\n", node->id,
+                        node->filename);
+    }
   }
   for (int i = 0; i < node->n_children; i++) {
     serialize_node(&node->children[i], node, s);
@@ -241,6 +249,13 @@ Tree *deserialize_tree(char *filename) {
 
       Node *node = find_node(tree->root, nodeID);
       node->name = strdup(get_name(line));
+    } else if (strcmp(type, "filename") == 0) {
+      int nodeID;
+      char filename[100];
+      sscanf(line, "%s\t%d\t%s", type, &nodeID, filename);
+
+      Node *node = find_node(tree->root, nodeID);
+      node->filename = strdup(filename);
     } else {
       printf("Unknown type: %s\n", type);
     }
