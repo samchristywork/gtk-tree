@@ -167,8 +167,8 @@ void serialize_node(Node *node, Node *parent, string *s) {
         s->size *= 2;
         s->str = realloc(s->str, s->size);
       }
-      s->len += sprintf(s->str + s->len, "color	%d	%d\n", node->id,
-                        node->color);
+      s->len +=
+          sprintf(s->str + s->len, "color	%d	%d\n", node->id, node->color);
     }
     if (node->filename != NULL) {
       if (s->len + 100 > s->size) {
@@ -438,20 +438,17 @@ static gboolean handle_return(GtkWidget *widget, GdkEventKey *event,
 }
 
 char *ask_for_name() {
-  GtkWidget *dialog;
-  GtkWidget *content_area;
-  GtkWidget *entry;
-  const char *name;
-
-  dialog = gtk_dialog_new_with_buttons("Enter name", NULL, 0, "_OK", 1, NULL);
-  content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-  entry = gtk_entry_new();
+  GtkWidget *dialog =
+      gtk_dialog_new_with_buttons("Enter name", NULL, 0, "_OK", 1, NULL);
+  GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+  GtkWidget *entry = gtk_entry_new();
   gtk_container_add(GTK_CONTAINER(content_area), entry);
   gtk_widget_show_all(dialog);
 
   g_signal_connect(dialog, "key-press-event", G_CALLBACK(handle_return),
                    dialog);
 
+  const char *name;
   int response = gtk_dialog_run(GTK_DIALOG(dialog));
   if (response == 1) {
     name = strdup(gtk_entry_get_text(GTK_ENTRY(entry)));
@@ -564,6 +561,7 @@ void show_help() {
                                    "j: Move down\n"
                                    "k: Move up\n"
                                    "l: Move right\n"
+                                   "e: Edit content\n"
                                    "n: Add child\n"
                                    "r: Rename\n"
                                    "d: Delete\n"
@@ -926,6 +924,26 @@ void draw_side_panel(cairo_t *cr, Tree *tree, double x, double y, double width,
     sprintf(text, "Descendents: %d", count_descendents(selected));
     cairo_move_to(cr, x + 10, y + offset);
     cairo_show_text(cr, text);
+
+    if (selected->filename != NULL) {
+      offset += 20;
+      sprintf(text, "Filename: %s", selected->filename);
+      cairo_move_to(cr, x + 10, y + offset);
+      cairo_show_text(cr, text);
+
+      FILE *file = fopen(selected->filename, "r");
+      if (file != NULL) {
+        offset += 20;
+        char line[100];
+        while (fgets(line, 100, file) != NULL) {
+          line[strlen(line) - 1] = '\0';
+          cairo_move_to(cr, x + 10, y + offset);
+          cairo_show_text(cr, line);
+          offset += 20;
+        }
+        fclose(file);
+      }
+    }
   }
 }
 
