@@ -956,6 +956,20 @@ void draw_side_panel(cairo_t *cr, Tree *tree, double x, double y, double width,
   }
 }
 
+void draw_child_node_names(cairo_t *cr) {
+  Node *selected = get_selected_node(draw_root);
+  if (selected != NULL) {
+    int offset = 60;
+    for (int i = 0; i < selected->n_children; i++) {
+      cairo_move_to(cr, 10, offset);
+      char name[100];
+      snprintf(name, 100, "%d: %s", i + 1, selected->children[i]->name);
+      cairo_show_text(cr, name);
+      offset += 20;
+    }
+  }
+}
+
 static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
   Tree *tree = (Tree *)data;
 
@@ -971,6 +985,8 @@ static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
                       &height);
   draw_side_panel(cr, tree, width - panel_width, 10, panel_width - 10,
                   height - 20);
+
+  draw_child_node_names(cr);
 
   draw_frame(cr);
   draw_modified_indicator(cr, tree);
