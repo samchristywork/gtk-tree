@@ -219,6 +219,10 @@ int hash_string(char *s) {
 
 Tree *deserialize_tree(char *filename) {
   FILE *file = fopen(filename, "r");
+  if (file == NULL) {
+    printf("Could not open file %s\n", filename);
+    exit(EXIT_FAILURE);
+  }
 
   Tree *tree = create_tree();
   tree->root->selected = true;
