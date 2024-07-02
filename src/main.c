@@ -210,8 +210,9 @@ char *serialize_tree(Node *node) {
 
 int hash_string(char *s) {
   int hash = 0;
-  for (int i = 0; i < strlen(s); i++) {
-    hash += s[i];
+  while (*s) {
+    hash = hash * 31 + *s;
+    s++;
   }
   return hash;
 }
