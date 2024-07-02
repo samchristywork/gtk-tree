@@ -582,6 +582,7 @@ void show_help() {
                                    "q: Quit\n"
                                    "?: Help\n"
                                    "/: Search\n"
+                                   "Space: Select random\n"
                                    "Return: Select\n"
                                    "Escape: Quit\n");
   gtk_container_add(GTK_CONTAINER(content_area), label);
@@ -589,6 +590,22 @@ void show_help() {
 
   int response = gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
+}
+
+Node *get_nth_node(Node *node, int *n) {
+  if (*n == 0) {
+    return node;
+  }
+
+  *n = *n - 1;
+  for (int i = 0; i < node->n_children; i++) {
+    Node *found = get_nth_node(node->children[i], n);
+    if (found != NULL) {
+      return found;
+    }
+  }
+
+  return NULL;
 }
 
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
@@ -796,6 +813,18 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
       }
       node->selected = true;
     }
+    break;
+  }
+  case (GDK_KEY_space): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      selected->selected = false;
+    }
+
+    int num_nodes = count_descendents(tree->root);
+    int random = rand() % num_nodes;
+    Node *node = get_nth_node(tree->root, &random);
+    node->selected = true;
     break;
   }
   case (GDK_KEY_z): {
