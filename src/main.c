@@ -142,6 +142,19 @@ char *get_name(char *line) {
   return name + 1;
 }
 
+void remove_child(Node *node, Node *child) {
+  for (int i = 0; i < node->n_children; i++) {
+    if (node->children[i] == child) {
+      for (int j = i; j < node->n_children - 1; j++) {
+        node->children[j] = node->children[j + 1];
+      }
+      node->n_children--;
+      node->children = realloc(node->children, node->n_children * sizeof(Node));
+      break;
+    }
+  }
+}
+
 typedef struct string {
   char *str;
   int len;
