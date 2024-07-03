@@ -566,6 +566,13 @@ Node *fuzzy_search(Node *node, char *name) {
   return NULL;
 }
 
+void calculate_parents(Node *node) {
+  for (int i = 0; i < node->n_children; i++) {
+    node->children[i]->parent = node;
+    calculate_parents(node->children[i]);
+  }
+}
+
 bool is_visible(Rectangle rect, double x_offset, double y_offset, double width,
                 double height) {
   int margin = 100;
@@ -906,6 +913,8 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     }
   }
 
+  calculate_parents(tree->root);
+
   gtk_widget_queue_draw(drawing_area);
 
   return FALSE;
@@ -1148,6 +1157,7 @@ int main(int argc, char *argv[]) {
   }
 
   Tree *tree = deserialize_tree(filename);
+  calculate_parents(tree->root);
 
   gtk_init(NULL, NULL);
 
