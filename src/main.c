@@ -461,6 +461,8 @@ Node *get_selected_node(Node *node) {
 
 static gboolean handle_return(GtkWidget *widget, GdkEventKey *event,
                               gpointer data) {
+  (void)widget;
+
   if (event->keyval == GDK_KEY_Return) {
     gtk_dialog_response(GTK_DIALOG(data), 1);
     return TRUE;
@@ -635,7 +637,7 @@ void show_help() {
   gtk_container_add(GTK_CONTAINER(content_area), label);
   gtk_widget_show_all(dialog);
 
-  int response = gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
 }
 
@@ -644,6 +646,7 @@ void show_help() {
 
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
                            gpointer data) {
+  (void)widget;
   Tree *tree = (Tree *)data;
 
   switch (event->keyval) {
@@ -1026,6 +1029,7 @@ void draw_child_node_names(cairo_t *cr) {
 }
 
 static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
+  (void)widget;
   Tree *tree = (Tree *)data;
 
   draw_background(cr);
@@ -1055,7 +1059,7 @@ Node *get_clicked_node(Node *node, double x, double y) {
   }
 
   for (int i = 0; i < node->n_children; i++) {
-    Node *clicked = get_clicked_node(&node->children[i], x, y);
+    Node *clicked = get_clicked_node(node->children[i], x, y);
     if (clicked != NULL) {
       return clicked;
     }
@@ -1071,7 +1075,8 @@ double click_pos_x = 0;
 double click_pos_y = 0;
 static gboolean handle_click(GtkWidget *widget, GdkEventButton *event,
                              gpointer data) {
-  Tree *tree = (Tree *)data;
+  (void)widget;
+  (void)data;
 
   mouse_x = event->x;
   mouse_y = event->y;
@@ -1084,6 +1089,8 @@ static gboolean handle_click(GtkWidget *widget, GdkEventButton *event,
 
 static gboolean handle_release(GtkWidget *widget, GdkEventButton *event,
                                gpointer data) {
+  (void)widget;
+
   Tree *tree = (Tree *)data;
 
   if (!dragging) {
@@ -1110,7 +1117,8 @@ double distance(double x1, double y1, double x2, double y2) {
 
 static gboolean handle_drag(GtkWidget *widget, GdkEventButton *event,
                             gpointer data) {
-  Tree *tree = (Tree *)data;
+  (void)widget;
+  (void)data;
 
   if (event->state & GDK_BUTTON1_MASK) {
     x_offset += event->x - mouse_x;
@@ -1161,7 +1169,7 @@ int main(int argc, char *argv[]) {
   g_signal_connect(window, "key-press-event", G_CALLBACK(handle_key), tree);
 
   g_signal_connect(window, "button-press-event", G_CALLBACK(handle_click),
-                   tree);
+                   NULL);
 
   g_signal_connect(window, "button-release-event", G_CALLBACK(handle_release),
                    tree);
