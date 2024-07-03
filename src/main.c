@@ -17,7 +17,7 @@ typedef struct Rectangle {
 
 typedef struct Node {
   char *name;
-  struct Node *children;
+  struct Node **children;
   int n_children;
   Rectangle rect;
   bool selected;
@@ -113,7 +113,7 @@ Node *find_node(Node *node, int id) {
   }
 
   for (int i = 0; i < node->n_children; i++) {
-    Node *found = find_node(&node->children[i], id);
+    Node *found = find_node(node->children[i], id);
     if (found != NULL) {
       return found;
     }
@@ -132,8 +132,13 @@ Tree *create_tree() {
 
 void add_child(Node *node, Node *child) {
   node->n_children++;
-  node->children = realloc(node->children, node->n_children * sizeof(Node));
-  node->children[node->n_children - 1] = *child;
+  node->children = realloc(node->children, node->n_children * sizeof(Node *));
+  if (node->children == NULL) {
+    printf("Could not allocate memory\n");
+    exit(EXIT_FAILURE);
+  }
+
+  node->children[node->n_children - 1] = child;
 }
 
 char *get_name(char *line) {
@@ -193,7 +198,7 @@ void serialize_node(Node *node, Node *parent, string *s) {
     }
   }
   for (int i = 0; i < node->n_children; i++) {
-    serialize_node(&node->children[i], node, s);
+    serialize_node(node->children[i], node, s);
   }
 }
 
@@ -421,9 +426,8 @@ Rectangle draw_nodes(cairo_t *cr, Node *node, double x, double y,
   Rectangle rect = node->rect;
 
   for (int i = 0; i < node->n_children; i++) {
-    node->children[i].parent = node;
     Rectangle child_rect =
-        draw_nodes(cr, &node->children[i], node->rect.x2 + xmargin, y,
+        draw_nodes(cr, node->children[i], node->rect.x2 + xmargin, y,
                    node->rect.x2, (node->rect.y1 + node->rect.y2) / 2);
     y = child_rect.y2 + ymargin;
 
@@ -445,7 +449,7 @@ Node *get_selected_node(Node *node) {
   }
 
   for (int i = 0; i < node->n_children; i++) {
-    Node *selected = get_selected_node(&node->children[i]);
+    Node *selected = get_selected_node(node->children[i]);
     if (selected != NULL) {
       return selected;
     }
@@ -520,7 +524,7 @@ bool check_if_descendent(Node *root, Node *node) {
   }
 
   for (int i = 0; i < root->n_children; i++) {
-    if (check_if_descendent(&root->children[i], node)) {
+    if (check_if_descendent(root->children[i], node)) {
       return true;
     }
   }
@@ -550,7 +554,7 @@ Node *fuzzy_search(Node *node, char *name) {
   }
 
   for (int i = 0; i < node->n_children; i++) {
-    Node *found = fuzzy_search(&node->children[i], name);
+    Node *found = fuzzy_search(node->children[i], name);
     if (found != NULL) {
       return found;
     }
@@ -676,7 +680,7 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     if (selected != NULL) {
       if (selected->n_children > 0) {
         selected->selected = false;
-        selected->children[0].selected = true;
+        selected->children[0]->selected = true;
       }
     } else {
       tree->root->selected = true;
@@ -688,10 +692,10 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     if (selected != NULL) {
       if (selected->parent != NULL) {
         for (int i = 0; i < selected->parent->n_children; i++) {
-          if (&selected->parent->children[i] == selected) {
+          if (selected->parent->children[i] == selected) {
             if (i < selected->parent->n_children - 1) {
               selected->selected = false;
-              selected->parent->children[i + 1].selected = true;
+              selected->parent->children[i + 1]->selected = true;
             }
           }
         }
@@ -727,10 +731,10 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     if (selected != NULL) {
       if (selected->parent != NULL) {
         for (int i = 0; i < selected->parent->n_children; i++) {
-          if (&selected->parent->children[i] == selected) {
+          if (selected->parent->children[i] == selected) {
             if (i > 0) {
               selected->selected = false;
-              selected->parent->children[i - 1].selected = true;
+              selected->parent->children[i - 1]->selected = true;
             }
           }
         }
@@ -773,7 +777,7 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
           }
         }
         for (int i = 0; i < parent->n_children; i++) {
-          if (&parent->children[i] == selected) {
+          if (parent->children[i] == selected) {
             for (int j = i; j < parent->n_children - 1; j++) {
               parent->children[j] = parent->children[j + 1];
             }
@@ -800,8 +804,8 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
         Node *parent = selected->parent;
         if (parent != NULL) {
           for (int i = 0; i < parent->n_children; i++) {
-            if (&parent->children[i] == selected) {
-              parent->children[i] = *new_node;
+            if (parent->children[i] == selected) {
+              parent->children[i] = new_node;
               break;
             }
           }
