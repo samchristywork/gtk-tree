@@ -585,6 +585,30 @@ void center_node(Node *selected) {
   x_offset = -selected->rect.x1 + (float)width / 8;
 }
 
+Node *get_nth_node(Node *node, int *n) {
+  if (*n == 0) {
+    return node;
+  }
+
+  *n = *n - 1;
+  for (int i = 0; i < node->n_children; i++) {
+    Node *found = get_nth_node(node->children[i], n);
+    if (found != NULL) {
+      return found;
+    }
+  }
+
+  return NULL;
+}
+
+int count_descendents(Node *node) {
+  int count = 0;
+  for (int i = 0; i < node->n_children; i++) {
+    count += count_descendents(node->children[i]);
+  }
+  return count + node->n_children;
+}
+
 void show_help() {
   GtkWidget *dialog =
       gtk_dialog_new_with_buttons("Help", NULL, 0, "_OK", 1, NULL);
@@ -615,20 +639,7 @@ void show_help() {
   gtk_widget_destroy(dialog);
 }
 
-Node *get_nth_node(Node *node, int *n) {
-  if (*n == 0) {
-    return node;
-  }
-
-  *n = *n - 1;
-  for (int i = 0; i < node->n_children; i++) {
-    Node *found = get_nth_node(node->children[i], n);
-    if (found != NULL) {
-      return found;
-    }
-  }
-
-  return NULL;
+ {
 }
 
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
@@ -947,14 +958,6 @@ void draw_modified_indicator(cairo_t *cr, Tree *tree) {
     cairo_show_text(cr, text);
   }
   free(s);
-}
-
-int count_descendents(Node *node) {
-  int count = 0;
-  for (int i = 0; i < node->n_children; i++) {
-    count += count_descendents(&node->children[i]);
-  }
-  return count + node->n_children;
 }
 
 void draw_side_panel(cairo_t *cr, Tree *tree, double x, double y, double width,
