@@ -52,6 +52,7 @@ Scheme color_scheme = SCHEME_DARK;
 double x_offset = 0;
 double y_offset = 0;
 int current_hash = 0;
+char *filename = NULL;
 
 void set_color(cairo_t *cr, Color color, double alpha) {
   if (color_scheme == SCHEME_LIGHT) {
@@ -858,7 +859,7 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
   }
   case (GDK_KEY_s): {
     char *s = serialize_tree(tree->root);
-    FILE *file = fopen("tree.txt", "w");
+    FILE *file = fopen(filename, "w");
     fprintf(file, "%s", s);
     fclose(file);
 
@@ -1124,8 +1125,18 @@ static gboolean handle_drag(GtkWidget *widget, GdkEventButton *event,
   return FALSE;
 }
 
-int main() {
-  Tree *tree = deserialize_tree("tree.txt");
+int main(int argc, char *argv[]) {
+  srand(time(NULL));
+
+  if (argc > 1) {
+    filename = strdup(argv[1]);
+  }
+
+  if (filename == NULL) {
+    filename = strdup("tree.txt");
+  }
+
+  Tree *tree = deserialize_tree(filename);
 
   gtk_init(NULL, NULL);
 
