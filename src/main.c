@@ -100,7 +100,7 @@ void set_color(cairo_t *cr, Color color, double alpha) {
 
 Node *create_node(int id) {
   Node *node = malloc(sizeof(Node));
-  node->name = NULL;
+  node->name = strdup("New Node");
   node->children = NULL;
   node->n_children = 0;
   node->rect = (Rectangle){0, 0, 0, 0};
@@ -532,24 +532,22 @@ bool check_if_descendent(Node *root, Node *node) {
   return false;
 }
 
-char *compare_strings(char *s1, char *s2) {
-  while (*s1 && *s2) {
-    if (tolower(*s1) != tolower(*s2)) {
-      return NULL;
+char *check_match(char *name, char *pattern) {
+  size_t i = 0;
+  for (size_t j = 0; j < strlen(name); j++) {
+    if (tolower(name[j]) == tolower(pattern[i])) {
+      i++;
+      if (i == strlen(pattern)) {
+        return name;
+      }
     }
-    s1++;
-    s2++;
   }
 
-  if (*s1 || *s2) {
-    return NULL;
-  }
-
-  return s1;
+  return NULL;
 }
 
 Node *fuzzy_search(Node *node, char *name) {
-  if (compare_strings(node->name, name) != NULL) {
+  if (check_match(node->name, name) != NULL) {
     return node;
   }
 
