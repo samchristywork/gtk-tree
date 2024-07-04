@@ -635,6 +635,7 @@ void show_help() {
                                    "j: Move down\n"
                                    "k: Move up\n"
                                    "l: Move right\n"
+                                   "H: Shift left\n"
                                    "K: Shift up\n"
                                    "J: Shift down\n"
                                    "e: Edit content\n"
@@ -695,6 +696,20 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
       selected->color++;
       if (selected->color > 3) {
         selected->color = 0;
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_H): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      Node *parent = selected->parent;
+      if (parent != NULL) {
+        Node *grandparent = parent->parent;
+        if (grandparent != NULL) {
+          remove_child(parent, selected);
+          add_child(grandparent, selected);
+        }
       }
     }
     break;
