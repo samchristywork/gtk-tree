@@ -190,8 +190,8 @@ void serialize_node(Node *node, Node *parent, string *s) {
         s->size *= 2;
         s->str = realloc(s->str, s->size);
       }
-      s->len +=
-          sprintf(s->str + s->len, "color	%d	%d\n", node->id, node->color);
+      s->len += sprintf(s->str + s->len, "color	%d	%d\n", node->id,
+                        node->color);
     }
     if (node->filename != NULL) {
       if (s->len + 100 > s->size) {
@@ -635,6 +635,8 @@ void show_help() {
                                    "j: Move down\n"
                                    "k: Move up\n"
                                    "l: Move right\n"
+                                   "K: Shift up\n"
+                                   "J: Shift down\n"
                                    "e: Edit content\n"
                                    "n: Add child\n"
                                    "r: Rename\n"
@@ -657,7 +659,10 @@ void show_help() {
   gtk_widget_destroy(dialog);
 }
 
- {
+void swap_nodes(Node *parent, int i, int j) {
+  Node *temp = parent->children[i];
+  parent->children[i] = parent->children[j];
+  parent->children[j] = temp;
 }
 
 static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
@@ -690,6 +695,36 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
       selected->color++;
       if (selected->color > 3) {
         selected->color = 0;
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_J): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      Node *parent = selected->parent;
+      if (parent != NULL) {
+        for (int i = 0; i < parent->n_children - 1; i++) {
+          if (parent->children[i] == selected) {
+            swap_nodes(parent, i, i + 1);
+            break;
+          }
+        }
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_K): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      Node *parent = selected->parent;
+      if (parent != NULL) {
+        for (int i = 1; i < parent->n_children; i++) {
+          if (parent->children[i] == selected) {
+            swap_nodes(parent, i, i - 1);
+            break;
+          }
+        }
       }
     }
     break;
