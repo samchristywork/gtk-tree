@@ -45,7 +45,7 @@ typedef enum Scheme {
 } Scheme;
 
 GtkWidget *drawing_area;
-double font_size = 12;
+double font_size = 10;
 Node *draw_root;
 double connector_radius = 4;
 Scheme color_scheme = SCHEME_DARK;
@@ -53,6 +53,10 @@ double x_offset = 0;
 double y_offset = 0;
 int current_hash = 0;
 char *filename = NULL;
+double xpad = 5;
+double ypad = 5;
+double xmargin = 50;
+double ymargin = 5;
 
 void set_color(cairo_t *cr, Color color, double alpha) {
   if (color_scheme == SCHEME_LIGHT) {
@@ -339,9 +343,6 @@ void draw_text(cairo_t *cr, double x, double y, char *text) {
 }
 
 void draw_node(cairo_t *cr, Node *node, double x, double y) {
-  double xpad = 10;
-  double ypad = 10;
-
   cairo_text_extents_t extents;
   cairo_text_extents(cr, node->name, &extents);
   extents.height = font_size;
@@ -413,10 +414,6 @@ void draw_node(cairo_t *cr, Node *node, double x, double y) {
 
 Rectangle draw_nodes(cairo_t *cr, Node *node, double x, double y,
                      double parent_x, double parent_y) {
-
-  double xmargin = 50;
-  double ymargin = 10;
-
   draw_node(cr, node, x, y);
 
   if (parent_x != 0 && parent_y != 0) {
@@ -1032,7 +1029,7 @@ void draw_child_node_names(cairo_t *cr) {
       char name[100];
       snprintf(name, 100, "%d: %s", i + 1, selected->children[i]->name);
       cairo_show_text(cr, name);
-      offset += 20;
+      offset += 20.0 / 12.0 * font_size;
     }
   }
 }
