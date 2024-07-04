@@ -581,6 +581,18 @@ bool is_visible(Rectangle rect, double x_offset, double y_offset, double width,
   return true;
 }
 
+void quit(Tree *tree) {
+  char *s = serialize_tree(tree->root);
+  if (current_hash != hash_string(s)) {
+    if (ask_yes_no("Tree has been modified. Really quit?")) {
+      gtk_main_quit();
+    }
+  } else {
+    gtk_main_quit();
+  }
+  free(s);
+}
+
 void center_node(Node *selected) {
   int width;
   int height;
@@ -655,12 +667,12 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
 
   switch (event->keyval) {
   case (GDK_KEY_Escape): {
-    gtk_main_quit();
+    quit(tree);
     return TRUE;
     break;
   }
   case (GDK_KEY_q): {
-    gtk_main_quit();
+    quit(tree);
     return TRUE;
     break;
   }
