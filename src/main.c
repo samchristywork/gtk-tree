@@ -733,6 +733,10 @@ void show_help() {
                                    "?: Help\n"
                                    "/: Search\n"
                                    "0: Select root\n"
+                                   "Up: Pan up\n"
+                                   "Down: Pan down\n"
+                                   "Left: Pan left\n"
+                                   "Right: Pan right\n"
                                    "Space: Select random\n"
                                    "Return: Select\n"
                                    "Escape: Quit\n");
@@ -987,6 +991,66 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
   }
   case (GDK_KEY_question): {
     show_help();
+    break;
+  }
+  case (GDK_KEY_Up): {
+    y_offset += 100;
+
+    int width;
+    int height;
+    gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)),
+                        &width, &height);
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (!is_visible(selected->rect, x_offset, y_offset, width, height)) {
+        y_offset -= 100;
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_Down): {
+    y_offset -= 100;
+
+    int width;
+    int height;
+    gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)),
+                        &width, &height);
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (!is_visible(selected->rect, x_offset, y_offset, width, height)) {
+        y_offset += 100;
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_Left): {
+    x_offset += 100;
+
+    int width;
+    int height;
+    gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)),
+                        &width, &height);
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (!is_visible(selected->rect, x_offset, y_offset, width, height)) {
+        x_offset -= 100;
+      }
+    }
+    break;
+  }
+  case (GDK_KEY_Right): {
+    x_offset -= 100;
+
+    int width;
+    int height;
+    gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)),
+                        &width, &height);
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (!is_visible(selected->rect, x_offset, y_offset, width, height)) {
+        x_offset += 100;
+      }
+    }
     break;
   }
   case (GDK_KEY_0): {
