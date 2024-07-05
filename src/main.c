@@ -573,6 +573,33 @@ void populate_matches(Node *node, char *name, GtkWidget *matches) {
   }
 }
 
+static gboolean search_event_callback(GtkWidget *widget, GdkEventKey *event,
+                                      gpointer data) {
+  (void)widget;
+
+  GtkWidget **widgets = (GtkWidget **)data;
+  GtkDialog *dialog = GTK_DIALOG(widgets[0]);
+  GtkWidget *entry = widgets[1];
+  GtkWidget *matches = widgets[2];
+
+  const char *value = gtk_entry_get_text(GTK_ENTRY(entry));
+  GList *children = gtk_container_get_children(GTK_CONTAINER(matches));
+  for (GList *iter = children; iter != NULL; iter = g_list_next(iter)) {
+    gtk_widget_destroy(GTK_WIDGET(iter->data));
+  }
+  g_list_free(children);
+
+  populate_matches(draw_root, strdup(value), matches);
+  gtk_widget_show_all(matches);
+
+  if (event->keyval == GDK_KEY_Return) {
+    gtk_dialog_response(dialog, 1);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 void calculate_parents(Node *node) {
   for (int i = 0; i < node->n_children; i++) {
     node->children[i]->parent = node;
