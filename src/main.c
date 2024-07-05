@@ -561,6 +561,18 @@ Node *fuzzy_search(Node *node, char *name) {
   return NULL;
 }
 
+void populate_matches(Node *node, char *name, GtkWidget *matches) {
+  if (check_match(node->name, name) != NULL) {
+    GtkWidget *label = gtk_label_new(node->name);
+    gtk_container_add(GTK_CONTAINER(matches), label);
+    gtk_widget_show(label);
+  }
+
+  for (int i = 0; i < node->n_children; i++) {
+    populate_matches(node->children[i], name, matches);
+  }
+}
+
 void calculate_parents(Node *node) {
   for (int i = 0; i < node->n_children; i++) {
     node->children[i]->parent = node;
@@ -1022,7 +1034,7 @@ void draw_modified_indicator(cairo_t *cr, Tree *tree) {
   if (current_hash != hash_string(s)) {
     set_color(cr, COLOR_FOREGROUND, 1.0);
     char text[100];
-    cairo_move_to(cr, 10, 40);
+    cairo_move_to(cr, 10, 20);
     sprintf(text, "Modified");
     cairo_show_text(cr, text);
   }
