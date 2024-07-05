@@ -46,6 +46,12 @@ typedef enum Scheme {
   SCHEME_DARK,
 } Scheme;
 
+typedef struct string {
+  char *str;
+  int len;
+  int size;
+} string;
+
 GtkWidget *drawing_area;
 double font_size = 10;
 Node *draw_root;
@@ -59,6 +65,11 @@ double xpad = 5;
 double ypad = 5;
 double xmargin = 50;
 double ymargin = 5;
+bool dragging = false;
+double mouse_x = 0;
+double mouse_y = 0;
+double click_pos_x = 0;
+double click_pos_y = 0;
 
 void set_color(cairo_t *cr, Color color, double alpha) {
   if (color_scheme == SCHEME_LIGHT) {
@@ -166,12 +177,6 @@ void remove_child(Node *node, Node *child) {
     }
   }
 }
-
-typedef struct string {
-  char *str;
-  int len;
-  int size;
-} string;
 
 void serialize_node(Node *node, Node *parent, string *s) {
   if (parent != NULL) {
@@ -608,12 +613,13 @@ Node *node_search_dialog() {
   GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
   GtkWidget *matched_nodes = gtk_label_new("Matched nodes:");
   GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
-  gtk_widget_set_size_request(scrolled_window, 200, 200);
   GtkWidget *matches = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  GtkWidget *entry = gtk_entry_new();
+
+  gtk_widget_set_size_request(scrolled_window, 200, 200);
   gtk_container_add(GTK_CONTAINER(content_area), matched_nodes);
   gtk_container_add(GTK_CONTAINER(content_area), scrolled_window);
   gtk_container_add(GTK_CONTAINER(scrolled_window), matches);
-  GtkWidget *entry = gtk_entry_new();
   gtk_container_add(GTK_CONTAINER(content_area), entry);
   gtk_widget_show_all(dialog);
 
@@ -681,8 +687,8 @@ void center_node(Node *selected) {
   gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)), &width,
                       &height);
 
-  y_offset = -selected->rect.y1 + (float)height / 4;
-  x_offset = -selected->rect.x1 + (float)width / 8;
+  y_offset = -selected->rect.y1 + 100;
+  x_offset = -selected->rect.x1 + 100;
 }
 
 Node *get_nth_node(Node *node, int *n) {
@@ -1306,11 +1312,6 @@ Node *get_clicked_node(Node *node, double x, double y) {
   return NULL;
 }
 
-bool dragging = false;
-double mouse_x = 0;
-double mouse_y = 0;
-double click_pos_x = 0;
-double click_pos_y = 0;
 static gboolean handle_click(GtkWidget *widget, GdkEventButton *event,
                              gpointer data) {
   (void)widget;
