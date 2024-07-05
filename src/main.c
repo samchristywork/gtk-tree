@@ -730,6 +730,7 @@ void show_help() {
                                    "q: Quit\n"
                                    "?: Help\n"
                                    "/: Search\n"
+                                   "0: Select root\n"
                                    "Space: Select random\n"
                                    "Return: Select\n"
                                    "Escape: Quit\n");
@@ -984,6 +985,14 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
   }
   case (GDK_KEY_question): {
     show_help();
+    break;
+  }
+  case (GDK_KEY_0): {
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      selected->selected = false;
+    }
+    tree->root->selected = true;
     break;
   }
   case (GDK_KEY_slash): {
