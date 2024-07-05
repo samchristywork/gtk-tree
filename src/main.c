@@ -600,6 +600,49 @@ static gboolean search_event_callback(GtkWidget *widget, GdkEventKey *event,
   return FALSE;
 }
 
+Node *node_search_dialog() {
+  GtkWidget *dialog =
+      gtk_dialog_new_with_buttons("Search", NULL, 0, "_OK", 1, NULL);
+  GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+  GtkWidget *matched_nodes = gtk_label_new("Matched nodes:");
+  GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+  gtk_widget_set_size_request(scrolled_window, 200, 200);
+  GtkWidget *matches = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(content_area), matched_nodes);
+  gtk_container_add(GTK_CONTAINER(content_area), scrolled_window);
+  gtk_container_add(GTK_CONTAINER(scrolled_window), matches);
+  GtkWidget *entry = gtk_entry_new();
+  gtk_container_add(GTK_CONTAINER(content_area), entry);
+  gtk_widget_show_all(dialog);
+
+  gtk_widget_grab_focus(entry);
+
+  GtkWidget *widgets[3];
+  widgets[0] = dialog;
+  widgets[1] = entry;
+  widgets[2] = matches;
+  g_signal_connect(dialog, "key-release-event",
+                   G_CALLBACK(search_event_callback), widgets);
+
+  const char *name;
+  int response = gtk_dialog_run(GTK_DIALOG(dialog));
+  if (response == 1) {
+    name = gtk_entry_get_text(GTK_ENTRY(entry));
+  } else {
+    name = NULL;
+  }
+
+  if (name != NULL) {
+    Node *n = fuzzy_search(draw_root, strdup(name));
+    gtk_widget_destroy(dialog);
+    return n;
+  }
+
+  gtk_widget_destroy(dialog);
+
+  return NULL;
+}
+
 void calculate_parents(Node *node) {
   for (int i = 0; i < node->n_children; i++) {
     node->children[i]->parent = node;
