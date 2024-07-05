@@ -7,6 +7,8 @@
 #include <stdlib.h>
 
 #define M_PI 3.14159265358979323846
+#define SIGNAL_CONNECT(widget, signal, callback, data)                         \
+  g_signal_connect(widget, signal, G_CALLBACK(callback), data)
 
 typedef struct Rectangle {
   double x1;
@@ -1327,7 +1329,6 @@ int main(int argc, char *argv[]) {
   GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(window), "Tree Editor");
   gtk_window_set_default_size(GTK_WINDOW(window), 1600, 850);
-  g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
   GtkWidget *container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_container_add(GTK_CONTAINER(window), container);
@@ -1337,18 +1338,12 @@ int main(int argc, char *argv[]) {
   gtk_widget_set_hexpand(drawing_area, TRUE);
   gtk_widget_set_vexpand(drawing_area, TRUE);
 
-  g_signal_connect(drawing_area, "draw", G_CALLBACK(handle_draw), tree);
-
-  g_signal_connect(window, "key-press-event", G_CALLBACK(handle_key), tree);
-
-  g_signal_connect(window, "button-press-event", G_CALLBACK(handle_click),
-                   NULL);
-
-  g_signal_connect(window, "button-release-event", G_CALLBACK(handle_release),
-                   tree);
-
-  g_signal_connect(window, "motion-notify-event", G_CALLBACK(handle_drag),
-                   tree);
+  SIGNAL_CONNECT(window, "destroy", gtk_main_quit, NULL);
+  SIGNAL_CONNECT(drawing_area, "draw", handle_draw, tree);
+  SIGNAL_CONNECT(window, "key-press-event", handle_key, tree);
+  SIGNAL_CONNECT(window, "button-press-event", handle_click, NULL);
+  SIGNAL_CONNECT(window, "button-release-event", handle_release, tree);
+  SIGNAL_CONNECT(window, "motion-notify-event", handle_drag, tree);
 
   gtk_widget_show_all(window);
 
