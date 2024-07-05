@@ -1044,6 +1044,21 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
   }
   }
 
+  if (event->keyval >= GDK_KEY_1 && event->keyval <= GDK_KEY_9) {
+    int num = event->keyval - GDK_KEY_1;
+    Node *selected = get_selected_node(tree->root);
+    if (selected != NULL) {
+      if (num < selected->n_children) {
+        Node *child = selected->children[num];
+        Node *current = get_selected_node(tree->root);
+        if (current != NULL) {
+          current->selected = false;
+        }
+        child->selected = true;
+      }
+    }
+  }
+
   gtk_widget_queue_draw(drawing_area);
 
   Node *selected = get_selected_node(tree->root);
