@@ -1068,8 +1068,7 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     break;
   }
   case (GDK_KEY_slash): {
-    char *name = ask_for_name();
-    Node *node = fuzzy_search(tree->root, name);
+    Node *node = node_search_dialog();
     if (node != NULL) {
       Node *selected = get_selected_node(tree->root);
       if (selected != NULL) {
@@ -1189,7 +1188,12 @@ void draw_frame(cairo_t *cr) {
   static int frame = 0;
   frame++;
   set_color(cr, COLOR_FOREGROUND, 1.0);
-  cairo_move_to(cr, 10, 20);
+
+  int width;
+  int height;
+  gtk_window_get_size(GTK_WINDOW(gtk_widget_get_toplevel(drawing_area)), &width,
+                      &height);
+  cairo_move_to(cr, 10, height - 10);
   char text[100];
   sprintf(text, "Frame: %d", frame);
   cairo_show_text(cr, text);
