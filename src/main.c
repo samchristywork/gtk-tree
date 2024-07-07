@@ -61,16 +61,35 @@ double x_offset = 0;
 double y_offset = 0;
 int current_hash = 0;
 char *filename = NULL;
-double xpad = 5;
-double ypad = 5;
-double xmargin = 50;
-double ymargin = 5;
 bool dragging = false;
 double mouse_x = 0;
 double mouse_y = 0;
 double click_pos_x = 0;
 double click_pos_y = 0;
-bool side_panel_visible = true;
+bool side_panel_visible = false;
+double xpad;
+double ypad;
+double xmargin;
+double ymargin;
+bool slim_mode = false;
+
+void set_style_slim(cairo_t *cr) {
+  xpad = 5;
+  ypad = 5;
+  xmargin = 50;
+  ymargin = 5;
+  font_size = 10;
+  cairo_set_font_size(cr, font_size);
+}
+
+void set_style_normal(cairo_t *cr) {
+  xpad = 10;
+  ypad = 10;
+  xmargin = 100;
+  ymargin = 10;
+  font_size = 12;
+  cairo_set_font_size(cr, font_size);
+}
 
 void set_color(cairo_t *cr, Color color, double alpha) {
   if (color_scheme == SCHEME_LIGHT) {
@@ -198,8 +217,8 @@ void serialize_node(Node *node, Node *parent, string *s) {
         s->size *= 2;
         s->str = realloc(s->str, s->size);
       }
-      s->len +=
-          sprintf(s->str + s->len, "color	%d	%d\n", node->id, node->color);
+      s->len += sprintf(s->str + s->len, "color	%d	%d\n", node->id,
+                        node->color);
     }
     if (node->filename != NULL) {
       if (s->len + 100 > s->size) {
@@ -733,9 +752,11 @@ void show_help() {
                                    "d: Delete\n"
                                    "i: Insert\n"
                                    "c: Change color\n"
+                                   "C: Change color scheme\n"
                                    "z: Center\n"
                                    "s: Save\n"
                                    "S: Print\n"
+                                   "m: Toggle slim mode\n"
                                    "q: Quit\n"
                                    "?: Help\n"
                                    "/: Search\n"
@@ -995,6 +1016,10 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     if (selected != NULL) {
       draw_root = selected;
     }
+    break;
+  }
+  case (GDK_KEY_m): {
+    slim_mode = !slim_mode;
     break;
   }
   case (GDK_KEY_semicolon): {
@@ -1289,6 +1314,12 @@ void draw_child_node_names(cairo_t *cr) {
 static gboolean handle_draw(GtkWidget *widget, cairo_t *cr, gpointer data) {
   (void)widget;
   Tree *tree = (Tree *)data;
+
+  if (slim_mode) {
+    set_style_slim(cr);
+  } else {
+    set_style_normal(cr);
+  }
 
   draw_background(cr);
 
