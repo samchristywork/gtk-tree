@@ -70,6 +70,7 @@ double mouse_x = 0;
 double mouse_y = 0;
 double click_pos_x = 0;
 double click_pos_y = 0;
+bool side_panel_visible = true;
 
 void set_color(cairo_t *cr, Color color, double alpha) {
   if (color_scheme == SCHEME_LIGHT) {
@@ -197,8 +198,8 @@ void serialize_node(Node *node, Node *parent, string *s) {
         s->size *= 2;
         s->str = realloc(s->str, s->size);
       }
-      s->len += sprintf(s->str + s->len, "color	%d	%d\n", node->id,
-                        node->color);
+      s->len +=
+          sprintf(s->str + s->len, "color	%d	%d\n", node->id, node->color);
     }
     if (node->filename != NULL) {
       if (s->len + 100 > s->size) {
@@ -739,6 +740,7 @@ void show_help() {
                                    "?: Help\n"
                                    "/: Search\n"
                                    "0: Select root\n"
+                                   "Semicolon: Show/hide side panel\n"
                                    "Up: Pan up\n"
                                    "Down: Pan down\n"
                                    "Left: Pan left\n"
@@ -995,6 +997,10 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
     }
     break;
   }
+  case (GDK_KEY_semicolon): {
+    side_panel_visible = !side_panel_visible;
+    break;
+  }
   case (GDK_KEY_question): {
     show_help();
     break;
@@ -1213,6 +1219,10 @@ void draw_modified_indicator(cairo_t *cr, Tree *tree) {
 
 void draw_side_panel(cairo_t *cr, Tree *tree, double x, double y, double width,
                      double height) {
+  if (!side_panel_visible) {
+    x += width;
+  }
+
   set_color(cr, COLOR_BACKGROUND, 0.8);
   cairo_rectangle(cr, x, y, width, height);
   cairo_fill(cr);
