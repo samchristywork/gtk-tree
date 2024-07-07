@@ -757,6 +757,7 @@ void show_help() {
                                    "s: Save\n"
                                    "S: Print\n"
                                    "m: Toggle slim mode\n"
+                                   "a: About\n"
                                    "q: Quit\n"
                                    "?: Help\n"
                                    "/: Search\n"
@@ -769,6 +770,26 @@ void show_help() {
                                    "Space: Select random\n"
                                    "Return: Select\n"
                                    "Escape: Quit\n");
+  gtk_container_add(GTK_CONTAINER(content_area), label);
+  gtk_widget_show_all(dialog);
+
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+}
+
+#define LICENSE_STRING                                                         \
+  "Copyright (C) 2024 Sam Christy.\n\n"                                        \
+  "License GPLv3+: GNU GPL version 3 or later "                                \
+  "<http://gnu.org/licenses/gpl.html>\n"                                       \
+  "\n"                                                                         \
+  "This is free software; you are free to change and redistribute it.\n"       \
+  "There is NO WARRANTY, to the extent permitted by law."
+
+void show_about() {
+  GtkWidget *dialog =
+      gtk_dialog_new_with_buttons("About", NULL, 0, "_OK", 1, NULL);
+  GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+  GtkWidget *label = gtk_label_new("Tree Editor 1.0.0\n\n" LICENSE_STRING);
   gtk_container_add(GTK_CONTAINER(content_area), label);
   gtk_widget_show_all(dialog);
 
@@ -1096,6 +1117,10 @@ static gboolean handle_key(GtkWidget *widget, GdkEventKey *event,
       selected->selected = false;
     }
     tree->root->selected = true;
+    break;
+  }
+  case (GDK_KEY_a): {
+    show_about();
     break;
   }
   case (GDK_KEY_slash): {
